@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Power Level — OH MY GEEK</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: rgba(20, 15, 40, 0.95);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 
+                0 0 60px rgba(108, 43, 217, 0.3),
+                inset 0 0 60px rgba(108, 43, 217, 0.05);
+            border: 1px solid rgba(108, 43, 217, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Аура вокруг контейнера */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, transparent 30%, rgba(108, 43, 217, 0.1) 70%);
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 5px;
+            font-size: 22px;
+            text-shadow: 0 0 20px rgba(108, 43, 217, 0.8);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #a78bfa;
+            margin-bottom: 25px;
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .counter-group {
+            background: rgba(45, 35, 75, 0.6);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(108, 43, 217, 0.2);
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .counter-group:hover {
+            border-color: rgba(108, 43, 217, 0.5);
+            box-shadow: 0 0 20px rgba(108, 43, 217, 0.2);
+        }
+        
+        .counter-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+        
+        .counter-label.green { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
+        .counter-label.red { color: #f87171; text-shadow: 0 0 10px rgba(248, 113, 113, 0.5); }
+        
+        .counter-hint {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+        
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+        }
+        
+        .counter-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+        
+        .counter-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .counter-btn.minus {
+            background: rgba(248, 113, 113, 0.1);
+            border-color: #f87171;
+            color: #f87171;
+        }
+        
+        .counter-btn.minus:hover {
+            background: rgba(248, 113, 113, 0.2);
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.4);
+        }
+        
+        .counter-btn.plus {
+            background: rgba(74, 222, 128, 0.1);
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+        
+        .counter-btn.plus:hover {
+            background: rgba(74, 222, 128, 0.2);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+        }
+        
+        .counter-value {
+            font-size: 42px;
+            font-weight: bold;
+            min-width: 70px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Результат — шкала силы */
+        .result {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+            border: 2px solid rgba(108, 43, 217, 0.3);
+            transition: all 0.5s ease;
+        }
+        
+        .result.mode-weak {
+            border-color: #6b7280;
+            box-shadow: 0 0 30px rgba(107, 114, 128, 0.3);
+        }
+        
+        .result.mode-awake {
+            border-color: #fbbf24;
+            box-shadow: 0 0 40px rgba(251, 191, 36, 0.4);
+            animation: pulse-awake 2s ease-in-out infinite;
+        }
+        
+        .result.mode-battle {
+            border-color: #f472b6;
+            box-shadow: 0 0 50px rgba(244, 114, 182, 0.5);
+            animation: pulse-battle 1.5s ease-in-out infinite;
+        }
+        
+        .result.mode-ultra {
+            border-color: #a78bfa;
+            background: linear-gradient(135deg, #4c1d95, #7c3aed, #4c1d95);
+            background-size: 200% 200%;
+            animation: ultra-bg 3s ease infinite, pulse-ultra 1s ease-in-out infinite;
+            box-shadow: 
+                0 0 60px rgba(167, 139, 250, 0.6),
+                0 0 100px rgba(124, 58, 237, 0.4);
+        }
+        
+        @keyframes pulse-awake {
+            0%, 100% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 60px rgba(251, 191, 36, 0.6); }
+        }
+        
+        @keyframes pulse-battle {
+            0%, 100% { box-shadow: 0 0 50px rgba(244, 114, 182, 0.5); }
+            50% { box-shadow: 0 0 80px rgba(244, 114, 182, 0.7); }
+        }
+        
+        @keyframes pulse-ultra {
+            0%, 100% { 
+                box-shadow: 0 0 60px rgba(167, 139, 250, 0.6), 0 0 100px rgba(124, 58, 237, 0.4);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 80px rgba(167, 139, 250, 0.8), 0 0 120px rgba(124, 58, 237, 0.6);
+                transform: scale(1.02);
+            }
+        }
+        
+        @keyframes ultra-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .result-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .power-level {
+            font-size: 14px;
+            color: #a78bfa;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .result-value {
+            font-size: 64px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .result.mode-ultra .result-value {
+            background: linear-gradient(90deg, #fff, #a78bfa, #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 2s linear infinite;
+        }
+        
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+        
+        .result-status {
+            margin-top: 12px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .status-weak { background: #374151; color: #9ca3af; }
+        .status-awake { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+        .status-battle { background: rgba(244, 114, 182, 0.2); color: #f472b6; border: 1px solid #f472b6; }
+        .status-ultra { 
+            background: linear-gradient(90deg, rgba(124, 58, 237, 0.3), rgba(167, 139, 250, 0.3));
+            color: #fff; 
+            border: 1px solid #a78bfa;
+            text-shadow: 0 0 10px rgba(167, 139, 250, 0.8);
+        }
+        
+        /* Аниме цитата */
+        .anime-quote {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            text-align: center;
+            font-style: italic;
+            animation: quote-appear 0.6s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .anime-quote.hidden { display: none; }
+        
+        .anime-quote.mode-awake { 
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .anime-quote.mode-battle { 
+            background: rgba(244, 114, 182, 0.1);
+            color: #f472b6;
+            border: 1px solid rgba(244, 114, 182, 0.3);
+        }
+        
+        .anime-quote.mode-ultra { 
+            background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(167, 139, 250, 0.2));
+            color: #fff;
+            border: 1px solid rgba(167, 139, 250, 0.5);
+            text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+        }
+        
+        .anime-quote.legendary {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            color: #ffd700;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            animation: quote-appear 0.6s ease, legendary-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes quote-appear {
+            0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        
+        @keyframes legendary-glow {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.7); }
+        }
+        
+        .quote-type {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+        
+        .reset-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            border: 1px solid rgba(108, 43, 217, 0.3);
+            border-radius: 12px;
+            background: rgba(108, 43, 217, 0.1);
+            color: #a78bfa;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .reset-btn:hover {
+            background: rgba(108, 43, 217, 0.2);
+            border-color: rgba(108, 43, 217, 0.5);
+        }
+        
+        .tips {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(30, 27, 75, 0.5);
+            border-radius: 12px;
+            font-size: 12px;
+            color: #9ca3af;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(108, 43, 217, 0.2);
+        }
+        
+        .tips-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #a78bfa;
+        }
+        
+        .brand {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Эффект вспышки при достижении порога */
+        .flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            animation: flash 0.5s ease-out;
+        }
+        
+        .flash.awake { background: radial-gradient(circle, rgba(251, 191, 36, 0.4), transparent 70%); }
+        .flash.battle { background: radial-gradient(circle, rgba(244, 114, 182, 0.4), transparent 70%); }
+        .flash.ultra { background: radial-gradient(circle, rgba(167, 139, 250, 0.5), transparent 70%); }
+        
+        @keyframes flash {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ POWER LEVEL</h1>
+        <p class="subtitle">OH MY GEEK — Измерь свою силу</p>
+        
+        <div class="counter-group">
+            <div class="counter-label green">✅ Новые с картой</div>
+            <div class="counter-hint">Клиент впервые оформил карту</div>
+            <div class="counter-controls">
+                <button class="counter-btn minus" onclick="change('new', -1)">−</button>
+                <span class="counter-value" id="new-value">0</span>
+                <button class="counter-btn plus" onclick="change('new', 1)">+</button>
+            </div>
+        </div>
+        
+        <div class="counter-group">
+            <div class="counter-label red">❌ Отказались</div>
+            <div class="counter-hint">Новый клиент, но карту не завёл</div>
+            <div class="counter-controls">
+                <button class="counter-btn minus" onclick="change('refused', -1)">−</button>
+                <span class="counter-value" id="refused-value">0</span>
+                <button class="counter-btn plus" onclick="change('refused', 1)">+</button>
+            </div>
+        </div>
+        
+        <div class="result mode-weak" id="result-box">
+            <div class="result-label">Твой уровень силы</div>
+            <div class="power-level" id="power-level">РЕЖИМ ОЖИДАНИЯ</div>
+            <div class="result-value" id="kpi-value">0%</div>
+            <div class="result-status status-weak" id="kpi-status">Начни смену!</div>
+        </div>
+        
+        <div class="anime-quote hidden" id="anime-quote">
+            <div class="quote-type" id="quote-type"></div>
+            <span id="quote-text"></span>
+        </div>
+        
+        <button class="reset-btn" onclick="reset()">🔄 Новая смена</button>
+        
+        <div class="tips">
+            <div class="tips-title">💡 Как повысить уровень:</div>
+            • Предлагай карту КАЖДОМУ новому клиенту<br>
+            • «Сразу 200₽ на счёт — это бесплатные деньги!»<br>
+            • Цель: достичь уровня 🔥 BATTLE MODE (50%+)
+        </div>
+        
+        <div class="brand">OH MY GEEK 💜</div>
+    </div>
+    
+    <script>
+        let counters = { new: 0, refused: 0 };
+        let currentMode = null;
+        let shownQuotes = new Set();
+        
+        const quotes = {
+            awake: [
+                'Ты только начал чувствовать свою силу',
+                'Каждый великий путь начинается с первого шага',
+                'Ты уже не тот, кем был в начале смены',
+                'Пробуждение началось...',
+                'Твоя аура становится сильнее'
+            ],
+            battle: [
+                'С этого момента ты сражаешься всерьёз',
+                'Твоя воля сильнее любых обстоятельств',
+                'Ты сделал выбор — не сдаваться',
+                'Вот где начинается настоящий бой!',
+                'Враги трепещут перед твоей решимостью',
+                'Это не удача. Это твоя дисциплина'
+            ],
+            ultra: [
+                'Ты превзошёл свой предел!',
+                'Это уровень легенд',
+                'Сегодня ты — пример для других',
+                'Сила — это постоянство, а не вспышка',
+                'Ты достиг того, что казалось невозможным',
+                'PLUS ULTRA!'
+            ],
+            legendary: [
+                '★ ЛЕГЕНДАРНО ★ Ты — избранный этой смены',
+                '★ РЕДКАЯ СИЛА ★ Такое случается раз в 20 смен',
+                '★ МИФИЧЕСКИЙ УРОВЕНЬ ★ Об этом будут рассказывать',
+                '★ БОЖЕСТВЕННАЯ АУРА ★ Превосходство в чистом виде'
+            ]
+        };
+        
+        const powerLevels = {
+            weak: { name: 'РЕЖИМ ОЖИДАНИЯ', status: 'Начни смену!', statusClass: 'status-weak' },
+            awake: { name: '🟡 ПРОБУЖДЕНИЕ', status: 'Сила растёт!', statusClass: 'status-awake' },
+            battle: { name: '🔥 BATTLE MODE', status: 'В бою!', statusClass: 'status-battle' },
+            ultra: { name: '⚡ ULTRA INSTINCT', status: 'МАКСИМУМ!', statusClass: 'status-ultra' }
+        };
+        
+        function change(type, delta) {
+            counters[type] = Math.max(0, counters[type] + delta);
+            document.getElementById(type + '-value').textContent = counters[type];
+            
+            // Анимация числа
+            const el = document.getElementById(type + '-value');
+            el.style.transform = 'scale(1.2)';
+            setTimeout(() => el.style.transform = 'scale(1)', 150);
+            
+            updateKPI();
+        }
+        
+        function getMode(kpi) {
+            if (kpi >= 70) return 'ultra';
+            if (kpi >= 50) return 'battle';
+            if (kpi >= 40) return 'awake';
+            return 'weak';
+        }
+        
+        function showFlash(mode) {
+            const flash = document.createElement('div');
+            flash.className = `flash ${mode}`;
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+        
+        function showQuote(mode) {
+            const quoteEl = document.getElementById('anime-quote');
+            const quoteText = document.getElementById('quote-text');
+            const quoteType = document.getElementById('quote-type');
+            
+            // 5% шанс на легендарную цитату
+            const isLegendary = Math.random() < 0.05 && mode !== 'weak';
+            
+            let list, typeLabel;
+            if (isLegendary) {
+                list = quotes.legendary;
+                typeLabel = '✨ ЛЕГЕНДАРНАЯ ЦИТАТА ✨';
+            } else {
+                list = quotes[mode];
+                typeLabel = mode === 'awake' ? 'Пробуждение' : 
+                           mode === 'battle' ? 'Боевой режим' : 'ULTRA';
+            }
+            
+            // Выбираем случайную цитату, которую ещё не показывали
+            let availableQuotes = list.filter(q => !shownQuotes.has(q));
+            if (availableQuotes.length === 0) {
+                shownQuotes.clear();
+                availableQuotes = list;
+            }
+            
+            const text = availableQuotes[Math.floor(Math.random() * availableQuotes.length)];
+            shownQuotes.add(text);
+            
+            quoteType.textContent = typeLabel;
+            quoteText.textContent = `«${text}»`;
+            quoteEl.className = isLegendary ? 'anime-quote legendary' : `anime-quote mode-${mode}`;
+        }
+        
+        function updateKPI() {
+            const total = counters.new + counters.refused;
+            const kpi = total > 0 ? Math.round(counters.new / total * 100) : 0;
+            
+            document.getElementById('kpi-value').textContent = kpi + '%';
+            
+            const mode = getMode(kpi);
+            const level = powerLevels[mode];
+            const resultBox = document.getElementById('result-box');
+            
+            // Обновляем отображение
+            document.getElementById('power-level').textContent = level.name;
+            
+            const statusEl = document.getElementById('kpi-status');
+            statusEl.textContent = level.status;
+            statusEl.className = `result-status ${level.statusClass}`;
+            
+            resultBox.className = `result mode-${mode}`;
+            
+            // Если достигли нового уровня — показываем эффекты
+            if (mode !== currentMode && mode !== 'weak' && total > 0) {
+                showFlash(mode);
+                showQuote(mode);
+                currentMode = mode;
+            } else if (mode === 'weak') {
+                document.getElementById('anime-quote').className = 'anime-quote hidden';
+                currentMode = null;
+            }
+        }
+        
+        function reset() {
+            counters = { new: 0, refused: 0 };
+            currentMode = null;
+            shownQuotes.clear();
+            
+            document.getElementById('new-value').textContent = '0';
+            document.getElementById('refused-value').textContent = '0';
+            document.getElementById('anime-quote').className = 'anime-quote hidden';
+            
+            updateKPI();
+        }
+    </script>
+</body>
+</html>
