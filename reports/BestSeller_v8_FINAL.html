@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Лучший продавец недели v6 — OH MY GEEK</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 24px; }
+        
+        .card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #334155;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f1f5f9;
+        }
+        
+        .upload-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .upload-box {
+            border: 2px dashed #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-box:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.05); }
+        .upload-box.has-data { border-color: #22c55e; border-style: solid; }
+        .upload-icon { font-size: 32px; margin-bottom: 8px; }
+        .upload-title { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+        .upload-hint { font-size: 11px; color: #64748b; margin-top: 4px; }
+        .upload-status { font-size: 11px; color: #22c55e; margin-top: 8px; font-weight: 600; }
+        input[type="file"] { display: none; }
+        
+        .period-row { display: flex; gap: 12px; margin-bottom: 16px; }
+        .period-input { flex: 1; }
+        .period-input label { display: block; font-size: 11px; color: #64748b; margin-bottom: 4px; }
+        .period-input input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+        .period-input input:focus { outline: none; border-color: #6366f1; }
+        
+        .files-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+        .file-row {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .file-info { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .file-name { font-weight: 500; }
+        .file-stats { color: #64748b; font-size: 11px; }
+        .cards-input {
+            width: 50px;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            text-align: center;
+            font-size: 13px;
+            margin: 0 8px;
+        }
+        .remove-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: none;
+            color: #ef4444;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .history-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .history-chip {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .history-chip .remove { cursor: pointer; color: #ef4444; }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); margin-top: 12px; }
+        .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        
+        .preview { display: none; margin-top: 20px; }
+        .preview.visible { display: block; }
+        
+        .preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .preview-table th {
+            background: #334155;
+            padding: 10px 8px;
+            text-align: left;
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+        .preview-table td { padding: 10px 8px; border-bottom: 1px solid #1e293b; }
+        .preview-table tr.top-1 td { background: rgba(251, 191, 36, 0.1); }
+        .preview-table tr.top-2 td { background: rgba(148, 163, 184, 0.1); }
+        .preview-table tr.top-3 td { background: rgba(249, 115, 22, 0.1); }
+        
+        .trend { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+        .trend-up { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .trend-down { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .trend-new { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+        
+        .kpi-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+        .kpi-good { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .kpi-warn { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .kpi-bad { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading.visible { display: flex; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { margin-top: 12px; color: #64748b; font-size: 13px; }
+        
+        /* ===== PDF СТИЛИ - ИСПРАВЛЕННЫЕ ===== */
+        #pdfContainer {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+        
+        #pdfContainer.rendering {
+            position: static;
+            left: auto;
+        }
+        
+        .pdf-report {
+            width: 794px; /* A4 в пикселях при 96dpi */
+            background: #fff;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        
+        .pdf-page {
+            width: 794px;
+            height: 1123px; /* A4 высота */
+            overflow: hidden;
+            page-break-after: always;
+            padding: 40px;
+            background: #fff;
+            color: #1e293b;
+            position: relative;
+            box-sizing: border-box;
+        
+            page-break-inside: avoid;
+        }
+        
+        /* СТРАНИЦА 1: ПОБЕДИТЕЛЬ */
+        .page-winner .header-bar {
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            margin: -40px -40px 0 -40px;
+            padding: 40px;
+            text-align: center;
+            color: #fff;
+        }
+        .page-winner .header-bar h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0;
+            color: #fff;
+            -webkit-text-fill-color: #fff;
+            background: none;
+        }
+        .page-winner .header-bar .period {
+            font-size: 16px;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+        .page-winner .header-bar .brand {
+            font-size: 14px;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+        
+        .winner-content {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .winner-medal {
+            font-size: 80px;
+            line-height: 1;
+        }
+        .winner-name {
+            font-size: 42px;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 20px 0 10px;
+        }
+        .winner-score {
+            font-size: 64px;
+            font-weight: 800;
+            color: #6366f1;
+        }
+        .winner-score-label {
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .winner-trend {
+            font-size: 18px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .winner-trend.up { color: #22c55e; }
+        .winner-trend.down { color: #ef4444; }
+        
+        .winner-prize {
+            display: inline-block;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .winner-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .winner-stat-box {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        .winner-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .mini { font-size: 12px; font-weight: 600; color: #334155; }
+
+        .winner-stat-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        /* СТРАНИЦА 2+: ОБЩИЕ СТИЛИ */
+        .page-section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            padding-bottom: 12px;
+            border-bottom: 4px solid #6366f1;
+            margin-bottom: 24px;
+        }
+        
+        .page-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 40px;
+            right: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        /* ТАБЛИЦА РЕЙТИНГА */
+        .rating-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .rating-table th {
+            background: #6366f1;
+            color: #fff;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .rating-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .rating-table tbody tr:nth-child(1) td { background: rgba(251, 191, 36, 0.15); }
+        .rating-table tbody tr:nth-child(2) td { background: rgba(148, 163, 184, 0.12); }
+        .rating-table tbody tr:nth-child(3) td { background: rgba(249, 115, 22, 0.12); }
+        
+        .rank-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: #fff;
+        }
+        .rank-1 { background: linear-gradient(135deg, #fbbf24, #f97316); }
+        .rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+        .rank-3 { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .rank-n { background: #e2e8f0; color: #64748b; }
+        
+        .table-kpi {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .table-kpi-good { background: #dcfce7; color: #16a34a; }
+        .table-kpi-warn { background: #fef3c7; color: #d97706; }
+        .table-kpi-bad { background: #fee2e2; color: #dc2626; }
+        
+        .table-score {
+            font-size: 18px;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        
+        .table-trend {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .table-trend-up { color: #22c55e; }
+        .table-trend-down { color: #ef4444; }
+        .table-trend-new { color: #6366f1; }
+        
+        .weights-note {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+        }
+        
+        /* БОНУСЫ (PDF) */
+        .page-section-subtitle {
+            font-size: 16px;
+            font-weight: 800;
+            color: #334155;
+            margin: 18px 0 10px;
+        }
+        .bonus-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .bonus-box {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .bonus-box .v {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .bonus-box .l {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .bonus-note {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+            margin: 10px 0 12px;
+        }
+        .bonus-table th { padding: 10px 8px; font-size: 10px; }
+        .bonus-table td { padding: 10px 8px; font-size: 11px; }
+        .badge-ok {
+            display:inline-block; padding: 2px 8px; border-radius: 999px;
+            background:#dcfce7; color:#16a34a; font-weight:700; font-size:10px;
+        }
+        .badge-wait {
+            display:inline-block; padding: 2px 8px; border-radius: 999px;
+            background:#fef3c7; color:#d97706; font-weight:700; font-size:10px;
+        }
+        
+        /* ДИНАМИКА */
+        .dynamics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        .dynamics-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            border-left: 5px solid #6366f1;
+        }
+        .dynamics-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        .dynamics-chart {
+            height: 50px;
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+        }
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            min-height: 4px;
+        }
+        .chart-bar-label {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .dynamics-summary {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* ОБУЧЕНИЕ */
+
+        .training-grid{
+            display:grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+    
+        .training-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 5px solid;
+        }
+        .training-card.priority-high { border-color: #ef4444; }
+        .training-card.priority-medium { border-color: #f59e0b; }
+        .training-card.priority-low { border-color: #22c55e; }
+        
+        .training-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .training-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .training-score {
+            font-size: 14px;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        .training-area {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        .training-area:last-child { margin-bottom: 0; }
+        .training-area-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+        .training-tasks {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        
+        /* ИТОГИ */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .achievement-box {
+            padding: 16px;
+            border-radius: 12px;
+            color: #fff;
+        }
+        .achievement-box.ach-1 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .achievement-box.ach-2 { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .achievement-box.ach-3 { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .achievement-box.ach-4 { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .achievement-title {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+        .achievement-value {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .summary-box {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .summary-label {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+        
+        .comparison-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .comparison-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1d4ed8;
+            margin-bottom: 16px;
+        }
+        .comparison-row {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        .comparison-item { }
+        .comparison-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .comparison-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        @media (max-width: 640px) {
+            .upload-grid { grid-template-columns: 1fr; }
+            .period-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Генерирую PDF-отчёт...</div>
+    </div>
+    
+    <div class="container">
+        <h1>🏆 ЛУЧШИЙ ПРОДАВЕЦ НЕДЕЛИ</h1>
+        <p class="subtitle">OH MY GEEK — v6 (исправленный PDF)</p>
+        
+        <div class="card">
+            <div class="card-title">📅 Период отчёта</div>
+            <div class="period-row">
+                <div class="period-input">
+                    <label>Начало</label>
+                    <input type="date" id="dateFrom">
+                </div>
+                <div class="period-input">
+                    <label>Конец</label>
+                    <input type="date" id="dateTo">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📁 Загрузка данных</div>
+            <div class="upload-grid">
+                <div class="upload-box" id="uploadExcel" onclick="document.getElementById('excelInput').click()">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-title">Excel текущей недели</div>
+                    <div class="upload-hint">До 10 файлов из "Мой Склад"</div>
+                    <div class="upload-status" id="excelStatus"></div>
+                </div>
+                <input type="file" id="excelInput" multiple accept=".xls,.xlsx,.csv" onchange="handleExcel(this.files); this.value='';">
+                
+                <div class="upload-box" id="uploadHistory" onclick="document.getElementById('historyInput').click()">
+                    <div class="upload-icon">📈</div>
+                    <div class="upload-title">PDF прошлых недель</div>
+                    <div class="upload-hint">До 5 файлов для динамики</div>
+                    <div class="upload-status" id="historyStatus"></div>
+                </div>
+                <input type="file" id="historyInput" multiple accept=".pdf">
+
+                <div class="upload-box" id="uploadHistoryJson" onclick="document.getElementById('historyJsonInput').click()">
+                    <div class="upload-icon">🧾</div>
+                    <div class="upload-title">JSON прошлых недель</div>
+                    <div class="upload-hint">Рекомендуется вместо PDF</div>
+                    <div class="upload-status" id="historyJsonStatus"></div>
+                </div>
+                <input type="file" id="historyJsonInput" multiple accept=".json">
+
+            </div>
+            
+            <div class="files-list" id="filesList"></div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+        
+        <!-- Настройки магазинов -->
+        <div class="card">
+            <div class="card-title">🏪 Базовые средние чеки по магазинам</div>
+            <div class="period-row">
+                <div class="period-input">
+                    <label>Ярмарка (₽)</label>
+                    <input type="number" id="baseCheckYarmarka" value="586" min="0">
+                </div>
+                <div class="period-input">
+                    <label>Алимпик (₽)</label>
+                    <input type="number" id="baseCheckOlympic" value="744" min="0">
+                </div>
+                <div class="period-input">
+                    <label>Три Кота (₽)</label>
+                    <input type="number" id="baseCheckTriKota" value="600" min="0">
+                </div>
+            </div>
+            <div style="font-size:11px;color:#64748b;margin-top:8px;">
+                💡 Используются для сравнения "vs магазин". Можно обновить по данным за месяц.
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" id="calcBtn" onclick="calculate()" disabled>
+            🧮 Рассчитать
+        </button>
+        
+        <div class="preview" id="preview">
+            <div class="card">
+                <div class="card-title">📊 Результаты</div>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Продавец</th>
+                            <th>Магазин</th>
+                            <th>Продажи</th>
+                            <th>Ср.чек</th>
+                            <th>vs магазин</th>
+                            <th>vs неделя</th>
+                            <th>KPI</th>
+                            <th>Карты</th>
+                            <th>Баллы</th>
+                            <th>Δ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+                <div style="margin-top:12px;padding:10px;background:#1e293b;border-radius:8px;font-size:11px;color:#94a3b8;">
+                    <strong>Веса:</strong> Продажи 35% · Ср.чек (vs магазин) 30% · KPI 20% · Карты 10% · Рост чека 5%
+                </div>
+            
+            <div class="card" id="weeklyReportCard" style="margin-top:16px;">
+                <div class="card-title">🏆 Отчёт: Лучший продавец недели</div>
+                <div id="weeklyReportBody" style="font-size:13px;color:#e2e8f0;"></div>
+            </div>
+
+            <div class="card" id="bonusReportCard">
+                <div class="card-title">🎁 Отчёт: Победители по бонусам</div>
+                <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">
+                    Правило: 1 победитель в день по нормализованному среднему чеку, допуск по выручке магазина. Если нет победителя, бонус накапливается +200 и забирается первым подтверждённым победителем.
+                </div>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Победитель</th>
+                            <th>Магазин</th>
+                            <th>Выручка</th>
+                            <th>Ср.чек</th>
+                            <th>Норм</th>
+                            <th>Бонус</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bonusReportBody"></tbody>
+                </table>
+                <div id="bonusReportFooter" style="margin-top:10px;font-size:11px;color:#94a3b8;"></div>
+            </div>
+</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <button class="btn btn-success" onclick="generatePDF()">📄 Скачать PDF</button>
+                <button class="btn btn-primary" onclick="downloadJSONSnapshot()">🧾 Скачать JSON</button>
+                <button class="btn btn-primary" onclick="downloadBonusJSON()">🎁 JSON бонусов</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pdfContainer"></div>
+    
+    <script>
+        if (window.pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        
+        let sellers = {};
+        let lastExcelError = null;
+        let results = [];
+        let historyData = [];
+        let bonusReport = null;
+        
+        const WEIGHTS = { sales: 0.35, avgCheck: 0.30, kpi: 0.20, cards: 0.10, checkGrowth: 0.05 };
+        const KPI_MIN = 40;
+        
+        const TRAINING = {
+            sales: {
+                title: '💰 Увеличение продаж',
+                tasks: ['Изучить топ-20 товаров недели', 'Практиковать допродажи', 'Брать смены в пиковые часы (пт-вс)']
+            },
+            avgCheck: {
+                title: '🎯 Повышение среднего чека',
+                tasks: ['Предлагать комплекты со скидкой', 'Знать акции и рассказывать о них', 'Использовать "Многие берут вместе с..."']
+            },
+            kpi: {
+                title: '📊 Работа с KPI',
+                tasks: ['Предлагать карту КАЖДОМУ новому клиенту', 'Скрипт: "Оформим карту — сразу 200₽!"', 'Отслеживать KPI в течение смены']
+            },
+            cards: {
+                title: '💳 Оформление карт',
+                tasks: ['Объяснять выгоду: скидки, бонусы', 'Показывать приложение БонусПлюс', 'Оформлять карту пока пробиваешь товар']
+            }
+        };
+        
+        function init() {
+            const today = new Date();
+            const day = today.getDay();
+            const mon = new Date(today);
+            mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+            const sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            
+            document.getElementById('dateFrom').value = mon.toISOString().split('T')[0];
+            document.getElementById('dateTo').value = sun.toISOString().split('T')[0];
+            
+            setupUploads();
+            loadLocalHistory();
+        }
+        
+        function setupUploads() {
+            const excelBox = document.getElementById('uploadExcel');
+            const excelInput = document.getElementById('excelInput');
+            const historyBox = document.getElementById('uploadHistory');
+            const historyInput = document.getElementById('historyInput');
+            const historyJsonBox = document.getElementById('uploadHistoryJson');
+            const historyJsonInput = document.getElementById('historyJsonInput');
+            
+            excelBox.ondragover = e => { e.preventDefault(); excelBox.style.borderColor = '#6366f1'; };
+            excelBox.ondragleave = () => { excelBox.style.borderColor = '#334155'; };
+            excelBox.ondrop = e => { e.preventDefault(); handleExcel(e.dataTransfer.files); };
+            excelInput.onchange = e => handleExcel(e.target.files);
+            
+            historyBox.ondragover = e => { e.preventDefault(); historyBox.style.borderColor = '#6366f1'; };
+            historyBox.ondragleave = () => { historyBox.style.borderColor = '#334155'; };
+            historyBox.ondrop = e => { e.preventDefault(); handleHistory(e.dataTransfer.files); };
+            historyInput.onchange = e => handleHistory(e.target.files);
+
+            // JSON история (предпочтительный формат)
+            if (historyJsonBox && historyJsonInput) {
+                historyJsonBox.ondragover = e => { e.preventDefault(); historyJsonBox.style.borderColor = '#6366f1'; };
+                historyJsonBox.ondragleave = () => { historyJsonBox.style.borderColor = '#334155'; };
+                historyJsonBox.ondrop = e => { e.preventDefault(); handleHistoryJson(e.dataTransfer.files); };
+                historyJsonInput.onchange = e => handleHistoryJson(e.target.files);
+            }
+        }
+        
+        async function handleExcel(files) {
+            let loaded = 0, skipped = 0;
+            for (const file of files) {
+                if (!file.name.match(/\.(xls|xlsx|csv)$/i)) { skipped++; continue; }
+                if (Object.keys(sellers).length >= 10) { skipped++; continue; }
+                try {
+                    const data = await parseExcel(file);
+
+                    // Частая причина "загружается только 1 файл":
+                    // extractName() возвращает одинаковое имя, и объект sellers перезаписывается.
+                    // Делаем ключ уникальным: добавляем (2), (3) ... при совпадении.
+                    const baseName = extractName(file.name);
+                    let name = baseName;
+                    let suffix = 2;
+                    while (sellers[name]) {
+                        name = `${baseName} (${suffix++})`;
+                    }
+
+                    sellers[name] = { ...data, newCards: 0, __fileName: file.name };
+                    loaded++;
+                } catch (e) { console.error(e); lastExcelError = e; skipped++; }
+            }
+            updateUI();
+
+            // Более понятный статус (сколько выбрал и сколько реально добавилось)
+            const status = document.getElementById('excelStatus');
+            const cnt = Object.keys(sellers).length;
+            if (status) {
+                if (cnt > 0) {
+                    status.textContent = `✓ загружено: ${loaded} · всего: ${cnt}${skipped ? ' · пропущено: ' + skipped : ''}`;
+                } else {
+                    let msg = '';
+                    if (lastExcelError && String(lastExcelError.message || '').includes('XLSX library not loaded')) {
+                        msg = 'Не удалось прочитать .xlsx: не загружена библиотека XLSX. Используй CSV (Сохранить как .csv) или открой файл в среде, где доступны внешние скрипты.';
+                    } else if (skipped) {
+                        msg = `Файлы не загружены. Пропущено: ${skipped}. Проверь формат и колонки.`;
+                    }
+                    status.textContent = msg;
+                }
+            }
+        }
+        
+        function parseExcel(file) {
+            const isCsv = file.name.match(/\.csv$/i);
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    try {
+                        if (isCsv) {
+                            const text = String(e.target.result || '');
+                            const rows = parseCSV(text);
+                            resolve(analyzeRows(rows));
+                            return;
+                        }
+                        if (typeof XLSX === 'undefined' || !XLSX.read) {
+                            reject(new Error('XLSX library not loaded'));
+                            return;
+                        }
+                        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+                        resolve(analyzeRows(rows));
+                    } catch (err) { reject(err); }
+                };
+                if (isCsv) reader.readAsText(file);
+                else reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function parseCSV(text) {
+            // Надежный CSV-парсер: поддержка ; , TAB, кавычек и CRLF
+            const t = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+            const linesRaw = t.split('\n');
+            const lines = linesRaw.filter(l => l !== undefined && l !== null && String(l).trim().length > 0);
+
+            // Определяем разделитель по первым строкам
+            const sample = lines.slice(0, 10).join('\n');
+            const counts = {
+                ';': (sample.match(/;/g) || []).length,
+                ',': (sample.match(/,/g) || []).length,
+                '\t': (sample.match(/\t/g) || []).length
+            };
+            const delim = (Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || [';'])[0];
+
+            const rows = [];
+            for (const line of lines) {
+                const row = [];
+                let cur = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+
+                    if (ch === '"') {
+                        // двойные кавычки внутри поля: "" -> "
+                        if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; continue; }
+                        inQuotes = !inQuotes;
+                        continue;
+                    }
+
+                    if (!inQuotes && ch === delim) {
+                        row.push(cur.trim());
+                        cur = '';
+                        continue;
+                    }
+
+                    cur += ch;
+                }
+
+                row.push(cur.trim());
+                rows.push(row);
+            }
+
+            return rows;
+        }
+
+        function normalizeStore(storeRaw) {
+            const s = String(storeRaw || '').toLowerCase();
+            if (!s) return { key: 'unknown', label: 'Не найден' };
+            if (s.includes('алимпик') || s.includes('olympic')) return { key: 'olympic', label: 'Олимпик' };
+            if (s.includes('ярмарк') || s.includes('yarmarka')) return { key: 'yarmarka', label: 'Ярмарка' };
+            if (s.includes('три кот') || s.includes('tri') || s.includes('3 кот')) return { key: 'tri_kota', label: 'Три кота' };
+            return { key: 'other', label: storeRaw };
+        }
+
+        
+        function findDateInRow(row) {
+            // Ищем дату в ячейках строки (часто в одной из первых колонок)
+            // Поддержка форматов: dd.mm.yyyy, dd.mm.yyyy hh:mm, yyyy-mm-dd
+            for (let i = 0; i < Math.min(row.length, 8); i++) {
+                const v = row[i];
+                if (!v) continue;
+                const s = String(v).trim();
+                let m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+                if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+                m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+                if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+            }
+            return null;
+        }
+
+        function analyzeRows(rows) {
+            let totalSales = 0, checks = 0, K = 0, N = 0, O = 0;
+
+            // Данные по магазинам (как было)
+            const storeData = {};
+
+            // Данные по дням (для отчёта по бонусам)
+            // daily[dateKey][storeKey] = { sales, checks }
+            const daily = {};
+
+            for (const row of rows) {
+                // В исходных выгрузках "МойСклад" строка чека обычно начинается с 5-значного номера
+                if (/^\d{5}$/.test(String(row[0] || '').trim())) {
+                    checks++;
+
+                    const total = parseFloat(String(row[11] || '0').replace(',', '.')) || 0;
+                    totalSales += total;
+
+                    const disc = parseFloat(String(row[10] || '0').replace(',', '.')) || 0;
+                    const comm = String(row[14] || '').toLowerCase();
+
+                    if (total > 0 && disc > 0 && Math.abs(disc / (total / 90) - 10) < 0.5) K++;
+                    if (comm.includes('списано бонусов 200') || comm.includes('списано 200')) N++;
+                    if (!comm.trim() && disc === 0) O++;
+
+                    // Магазин
+                    const storeRaw = String(row[3] || '').trim();
+                    const store = normalizeStore(storeRaw);
+
+                    // Группировка по магазину (как было)
+                    if (!storeData[store.key]) {
+                        storeData[store.key] = { key: store.key, label: store.label, sales: 0, checks: 0 };
+                    }
+                    storeData[store.key].sales += total;
+                    storeData[store.key].checks++;
+
+                    // Группировка по датам (для бонусов)
+                    const dateKey = findDateInRow(row);
+                    if (dateKey) {
+                        if (!daily[dateKey]) daily[dateKey] = {};
+                        if (!daily[dateKey][store.key]) daily[dateKey][store.key] = { sales: 0, checks: 0, label: store.label };
+                        daily[dateKey][store.key].sales += total;
+                        daily[dateKey][store.key].checks++;
+                    }
+                }
+            }
+
+            const stores = Object.values(storeData).map(st => ({
+                ...st,
+                avgCheck: st.checks > 0 ? Math.round(st.sales / st.checks) : 0
+            }));
+
+            const primaryStore = stores.length > 0
+                ? stores.reduce((a, b) => b.checks > a.checks ? b : a)
+                : { key: 'unknown', label: 'Не определён', sales: 0, checks: 0, avgCheck: 0 };
+
+            const denom = K + N + O;
+
+            // Приводим daily к компактному формату: по дате выбираем магазин с максимумом чеков
+            // и считаем ср.чек/выручку за этот день (по основному магазину дня).
+            const dailySummary = {};
+            for (const [dateKey, byStore] of Object.entries(daily)) {
+                const entries = Object.entries(byStore).map(([k, v]) => ({ storeKey: k, ...v }));
+                const main = entries.reduce((a, b) => (b.checks > a.checks ? b : a), entries[0]);
+                dailySummary[dateKey] = {
+                    date: dateKey,
+                    storeKey: main.storeKey,
+                    storeLabel: main.label,
+                    sales: Math.round(main.sales),
+                    checks: main.checks,
+                    avgCheck: main.checks > 0 ? Math.round(main.sales / main.checks) : 0
+                };
+            }
+
+            return {
+                totalSales: Math.round(totalSales),
+                checkCount: checks,
+                avgCheck: checks > 0 ? Math.round(totalSales / checks) : 0,
+                kpi: denom > 0 ? Math.round((K + N) / denom * 100) : 0,
+                storeKey: primaryStore.key,
+                storeLabel: primaryStore.label,
+                stores: stores,
+                daily: dailySummary
+            };
+        }
+
+        
+        function extractName(fn) {
+            let n = fn.replace(/\.(xls|xlsx|csv)$/i, '').replace(/^(Продажи_|report-RetailDemand-)/i, '')
+                     .replace(/-\d{4}-\d{2}-\d{2}.*$/i, '').replace(/_/g, ' ').trim();
+            const w = n.split(/\s+/);
+            return w.length > 2 ? w.slice(0, 2).join(' ') : (n || `Продавец ${Object.keys(sellers).length + 1}`);
+        }
+        
+        
+        async function handleHistoryJson(files) {
+            const status = document.getElementById('historyJsonStatus');
+            let added = 0;
+
+            for (const file of files) {
+                if (!file.name.match(/\.json$/i)) continue;
+
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+
+                    // Поддержка:
+                    // 1) один слепок недели (snapshot)
+                    // 2) массив слепков
+                    // 3) объект-архив вида { history: [snapshot, ...] }
+                    let snapshots = [];
+                    if (Array.isArray(data)) snapshots = data;
+                    else if (data && Array.isArray(data.history)) snapshots = data.history;
+                    else if (data) snapshots = [data];
+
+                    for (const s of snapshots) {
+                        if (!s || !s.period || !s.period.from || !s.period.to) continue;
+
+                        // Нормализуем sellers
+                        const sellersMap = s.sellers || {};
+                        if ((!sellersMap || Object.keys(sellersMap).length === 0) && Array.isArray(s.results)) {
+                            // fallback: если есть только results
+                            for (const r of s.results) {
+                                if (!r || !r.name) continue;
+                                sellersMap[r.name] = {
+                                    rank: r.rank,
+                                    totalScore: r.totalScore,
+                                    totalSales: r.totalSales,
+                                    avgCheck: r.avgCheck,
+                                    kpi: r.kpi,
+                                    newCards: r.newCards
+                                };
+                            }
+                        }
+
+                        const weekObj = {
+                            id: `${s.period.from}_${s.period.to}`,
+                            source: 'json',
+                            period: { start: s.period.from, end: s.period.to },
+                            totals: s.totals || { sales: 0, checks: 0, kpi: 0, cards: 0 },
+                            sellers: sellersMap
+                        };
+
+                        upsertHistoryWeek(weekObj);
+                        saveSnapshotToLocalHistory(s); // сохраняем слепок как есть, для автопамяти
+                        added++;
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            if (status) status.textContent = added > 0 ? `✓ добавлено: ${added}` : '';
+            sortHistory();
+            renderHistory();
+            updateUI();
+        }
+
+        async function handleHistory(files) {
+            for (const file of files) {
+                if (!file.name.match(/\.pdf$/i) || historyData.filter(h => h.source === 'pdf').length >= 5) continue;
+                try {
+                    const data = await parsePDF(file);
+                    if (data && data.sellers && Object.keys(data.sellers).length > 0 && data.period) {
+                        const weekObj = {
+                            id: `${data.period.start}_${data.period.end}`,
+                            source: 'pdf',
+                            period: { start: data.period.start, end: data.period.end },
+                            totals: data.totals || { sales: 0, checks: 0, kpi: 0, cards: 0 },
+                            sellers: data.sellers
+                        };
+                        upsertHistoryWeek(weekObj);
+                        sortHistory();
+                    }
+                } catch (e) { console.error(e); }
+            }
+            renderHistory();
+            updateUI();
+        }
+
+        async function parsePDF(file) {
+            const buf = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(x => x.str).join(' ') + '\n';
+            }
+            return extractPDFData(text, file.name);
+        }
+        
+        function extractPDFData(text, filename) {
+            const data = { sellers: {}, totals: {}, period: null };
+            
+            const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})/);
+            if (dateMatch) data.period = { start: dateMatch[1], end: dateMatch[2] };
+            
+            // Улучшенный парсинг таблицы
+            const lines = text.split(/\s+/);
+            let i = 0;
+            while (i < lines.length) {
+                // Ищем номер места (1-9)
+                if (/^[1-9]$/.test(lines[i])) {
+                    const rank = parseInt(lines[i]);
+                    i++;
+                    
+                    // Ищем имя (кириллица)
+                    let name = '';
+                    while (i < lines.length && /^[А-Яа-яЁё]+$/.test(lines[i])) {
+                        name += (name ? ' ' : '') + lines[i];
+                        i++;
+                    }
+                    
+                    if (name && i + 5 < lines.length) {
+                        // Парсим числа
+                        const sales = parseInt(String(lines[i]).replace(/\D/g, '')) || 0;
+                        const check = parseInt(String(lines[i+2] || lines[i+1]).replace(/\D/g, '')) || 0;
+                        const kpiMatch = text.match(new RegExp(name + '[^%]*?(\\d+)%'));
+                        const kpi = kpiMatch ? parseInt(kpiMatch[1]) : 0;
+                        
+                        // Ищем баллы (формат XX.X)
+                        const scoreMatch = text.match(new RegExp(name + '[^\\d]*\\d+%\\s+(\\d+)\\s+(\\d+\\.\\d)'));
+                        const cards = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+                        const score = scoreMatch ? parseFloat(scoreMatch[2]) : 0;
+                        
+                        if (name && score > 0) {
+                            data.sellers[name] = { rank, totalSales: sales, avgCheck: check, kpi, newCards: cards, totalScore: score };
+                        }
+                    }
+                }
+                i++;
+            }
+            
+            // Итоги
+            const salesMatch = text.match(/(\d[\d\s]{2,})\s*₽?\s*Общая/i);
+            if (salesMatch) data.totals.sales = parseInt(salesMatch[1].replace(/\s/g, ''));
+            
+            const kpiMatch = text.match(/(\d+)%\s*Средний KPI/i);
+            if (kpiMatch) data.totals.kpi = parseInt(kpiMatch[1]);
+            
+            return data;
+        }
+        
+        function updateUI() {
+            const cnt = Object.keys(sellers).length;
+            document.getElementById('excelStatus').textContent = cnt > 0 ? `✓ ${cnt} файлов` : '';
+            document.getElementById('uploadExcel').classList.toggle('has-data', cnt > 0);
+
+            // Считаем недели в истории по источникам
+            const weeksTotal = historyData.length;
+            const weeksJsonLocal = historyData.filter(h => h.source === 'json' || h.source === 'local').length;
+            const weeksPdf = historyData.filter(h => h.source === 'pdf').length;
+
+            const hs = document.getElementById('historyStatus');
+            if (hs) hs.textContent = weeksPdf > 0 ? `✓ PDF: ${weeksPdf}` : '';
+            const hb = document.getElementById('uploadHistory');
+            if (hb) hb.classList.toggle('has-data', weeksPdf > 0);
+
+            const hjs = document.getElementById('historyJsonStatus');
+            if (hjs) hjs.textContent = weeksJsonLocal > 0 ? `✓ JSON/локально: ${weeksJsonLocal}` : '';
+            const hjb = document.getElementById('uploadHistoryJson');
+            if (hjb) hjb.classList.toggle('has-data', weeksJsonLocal > 0);
+
+            renderFiles();
+            renderHistory();
+
+            document.getElementById('calcBtn').disabled = cnt < 2;
+            document.getElementById('preview').classList.remove('visible');
+        }
+        
+        function renderFiles() {
+            const el = document.getElementById('filesList');
+            el.innerHTML = Object.entries(sellers).map(([name, d]) => {
+                const storeList = (d.stores || []).map(st => st.label).join(', ') || d.storeLabel || '—';
+                return `
+                <div class="file-row">
+                    <div class="file-info">
+                        <span class="file-name">${name}</span>
+                        <span class="file-stats">${d.totalSales.toLocaleString()}₽ · Ср.${d.avgCheck}₽ · KPI ${d.kpi}% · 📍${storeList}</span>
+                    </div>
+                    <input type="number" class="cards-input" value="${d.newCards}" min="0" 
+                           onchange="sellers['${name}'].newCards=parseInt(this.value)||0" placeholder="карты">
+                    <button class="remove-btn" onclick="delete sellers['${name}']; updateUI()">×</button>
+                </div>
+            `}).join('');
+        }
+        
+        function renderHistory() {
+            const el = document.getElementById('historyList');
+            if (!el) return;
+
+            // показываем последние сверху
+            const sorted = [...historyData].sort((a, b) => new Date(b.period?.start || 0) - new Date(a.period?.start || 0));
+
+            el.innerHTML = sorted.map((h, i) => `
+                <div class="history-chip" title="${h.source === 'local' ? 'Сохранено на этом компьютере' : (h.source === 'json' ? 'Загружено из JSON' : 'Из PDF') }">
+                    📅 ${h.period ? formatDateShort(h.period.start) + '–' + formatDateShort(h.period.end) : '—'}
+                    <span class="remove" onclick="removeHistoryById('${h.id}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        function sortHistory() {
+            historyData.sort((a, b) => new Date(a.period?.start || 0) - new Date(b.period?.start || 0));
+        }
+
+        function upsertHistoryWeek(weekObj) {
+            if (!weekObj || !weekObj.id) return;
+            const idx = historyData.findIndex(x => x.id === weekObj.id);
+            if (idx >= 0) historyData[idx] = { ...historyData[idx], ...weekObj };
+            else historyData.push(weekObj);
+        }
+
+        function removeHistoryById(id) {
+            historyData = historyData.filter(h => h.id !== id);
+
+            // удалим также из localStorage, если есть
+            const key = "ohmygeek_best_seller_history_v1";
+            try {
+                let arr = JSON.parse(localStorage.getItem(key) || "[]");
+                arr = arr.filter(x => (`${x.period?.from}_${x.period?.to}`) !== id);
+                localStorage.setItem(key, JSON.stringify(arr));
+            } catch (e) {}
+
+            renderHistory();
+            updateUI();
+        }
+
+        
+        function calculate() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const list = Object.entries(sellers).map(([name, d]) => ({ name, ...d }));
+            
+            const maxS = Math.max(...list.map(s => s.totalSales));
+            const maxK = Math.max(...list.map(s => s.kpi));
+            const maxCards = Math.max(...list.map(s => s.newCards), 1);
+
+            // Базовые средние чеки по магазинам (из настроек)
+            const BASE_CHECK = {
+                yarmarka: parseInt(document.getElementById('baseCheckYarmarka').value) || 586,
+                olympic: parseInt(document.getElementById('baseCheckOlympic').value) || 744,
+                tri_kota: parseInt(document.getElementById('baseCheckTriKota').value) || 600,
+                unknown: 600,
+                other: 600
+            };
+
+            // Для каждого сотрудника считаем взвешенное отклонение от базы магазина(ов)
+            const relChecks = list.map(s => {
+                if (!s.stores || s.stores.length === 0) return 1;
+                
+                let totalWeight = 0;
+                let weightedRel = 0;
+                for (const st of s.stores) {
+                    const baseAvg = BASE_CHECK[st.key] || BASE_CHECK.unknown;
+                    if (baseAvg > 0 && st.checks > 0) {
+                        const rel = st.avgCheck / baseAvg; // 1.0 = норма магазина
+                        weightedRel += rel * st.checks;
+                        totalWeight += st.checks;
+                    }
+                }
+                return totalWeight > 0 ? weightedRel / totalWeight : 1;
+            });
+            const maxRelCheck = Math.max(...relChecks, 1);
+
+            // Данные прошлой недели для расчёта роста среднего чека
+            const lastWeek = historyData.length > 0 ? historyData[historyData.length - 1] : null;
+
+            results = list.map((s, idx) => {
+                // 1. Продажи (35%)
+                const sScore = maxS > 0 ? (s.totalSales / maxS) * 100 : 0;
+
+                // 2. Средний чек относительно базы магазина (30%)
+                const relCheck = relChecks[idx];
+                const cScore = maxRelCheck > 0 ? (relCheck / maxRelCheck) * 100 : 0;
+                const checkDeltaPct = Math.round((relCheck - 1) * 100); // +5% значит на 5% выше базы магазина
+                
+                // Базовый чек для основного магазина
+                const primaryStoreBase = BASE_CHECK[s.storeKey] || BASE_CHECK.unknown;
+
+                // 3. KPI (20%)
+                const kScore = s.kpi >= KPI_MIN && maxK > 0 ? (s.kpi / maxK) * 100 : 0;
+
+                // 4. Новые карты (10%)
+                const cardsScore = maxCards > 0 ? (s.newCards / maxCards) * 100 : 0;
+
+                // 5. Рост среднего чека vs прошлая неделя (5%)
+                let checkGrowthScore = 50; // базово 50 (нет данных = нейтрально)
+                let checkGrowthPct = null;
+                if (lastWeek && lastWeek.sellers && lastWeek.sellers[s.name]) {
+                    const prevAvgCheck = lastWeek.sellers[s.name].avgCheck || 0;
+                    if (prevAvgCheck > 0) {
+                        checkGrowthPct = Math.round((s.avgCheck - prevAvgCheck) / prevAvgCheck * 100);
+                        // Нормализуем: -20% = 0 баллов, 0% = 50 баллов, +20% = 100 баллов
+                        checkGrowthScore = Math.min(100, Math.max(0, 50 + checkGrowthPct * 2.5));
+                    }
+                }
+                
+                const total = sScore * WEIGHTS.sales + 
+                              cScore * WEIGHTS.avgCheck + 
+                              kScore * WEIGHTS.kpi + 
+                              cardsScore * WEIGHTS.cards +
+                              checkGrowthScore * WEIGHTS.checkGrowth;
+                
+                const history = getSellerHistory(s.name);
+                const trend = history.length > 0 ? 
+                    Math.round((total - history[history.length - 1].score) * 10) / 10 : null;
+                
+                const weakAreas = [];
+                if (sScore < 50) weakAreas.push('sales');
+                if (cScore < 50) weakAreas.push('avgCheck');
+                if (s.kpi < 50) weakAreas.push('kpi');
+                if (cardsScore < 50 && maxCards > 3) weakAreas.push('cards');
+                
+                // Список магазинов для отображения
+                const storeLabels = (s.stores || []).map(st => st.label).join(', ') || s.storeLabel || '—';
+                
+                return {
+                    ...s,
+                    sScore: Math.round(sScore * 10) / 10,
+                    cScore: Math.round(cScore * 10) / 10,
+                    relCheck: Math.round(relCheck * 100) / 100,
+                    checkDeltaPct,
+                    primaryStoreBase,
+                    kScore: Math.round(kScore * 10) / 10,
+                    cardsScore: Math.round(cardsScore * 10) / 10,
+                    checkGrowthScore: Math.round(checkGrowthScore * 10) / 10,
+                    checkGrowthPct,
+                    totalScore: Math.round(total * 10) / 10,
+                    storeLabels,
+                    history,
+                    trend,
+                    weakAreas
+                };
+            });
+            
+            results.sort((a, b) => b.totalScore - a.totalScore);
+            
+            // Сохраняем используемые базовые чеки для отчёта
+            results.BASE_CHECK = BASE_CHECK;
+
+            // Отчёт по бонусам (по дням) — только из Excel
+            bonusReport = computeBonusReport(dateFrom, dateTo, BASE_CHECK);
+            
+            renderPreview();
+            
+            // Сохраняем снимок в localStorage
+            const snapshot = buildSnapshot(dateFrom, dateTo);
+            saveSnapshotToLocalHistory(snapshot);
+        }
+        
+        function getSellerHistory(name) {
+            const history = [];
+            // historyData уже в хронологическом порядке (sortHistory)
+            for (const week of historyData) {
+                if (week && week.sellers && week.sellers[name]) {
+                    const s = week.sellers[name];
+                    history.push({
+                        period: week.period,
+                        score: s.totalScore || 0,
+                        rank: s.rank || null,
+                        kpi: s.kpi || 0,
+                        avgCheck: s.avgCheck || 0,
+                        totalSales: s.totalSales || 0,
+                        newCards: s.newCards || 0
+                    });
+                }
+        }
+        return history;
+    }
+        
+
+        function getBonusSettings(BASE_CHECK) {
+            return {
+                baseCheck: BASE_CHECK,
+                thresholds: { olympic: 30000, yarmarka: 25000, tri_kota: 25000, unknown: 25000, other: 25000 },
+                potStart: 200,
+                potStep: 200
+            };
+        }
+
+        function computeBonusReport(dateFrom, dateTo, BASE_CHECK) {
+            const settings = getBonusSettings(BASE_CHECK);
+
+            // Собираем кандидатов по дням из sellers[*].daily
+            // dayMap[date] = [{ name, storeKey, storeLabel, sales, avgCheck, normAvg }]
+            const dayMap = {};
+            for (const [name, s] of Object.entries(sellers)) {
+                const daily = s.daily || {};
+                for (const [dateKey, d] of Object.entries(daily)) {
+                    // фильтр по периоду
+                    if (dateFrom && dateKey < dateFrom) continue;
+                    if (dateTo && dateKey > dateTo) continue;
+
+                    const base = settings.baseCheck[d.storeKey] || settings.baseCheck.unknown || 600;
+                    const normAvg = base > 0 ? (d.avgCheck / base) : 0;
+
+                    if (!dayMap[dateKey]) dayMap[dateKey] = [];
+                    dayMap[dateKey].push({
+                        date: dateKey,
+                        name,
+                        storeKey: d.storeKey,
+                        storeLabel: d.storeLabel,
+                        sales: d.sales,
+                        avgCheck: d.avgCheck,
+                        normAvg: Math.round(normAvg * 1000) / 1000
+                    });
+                }
+            }
+
+            const dates = Object.keys(dayMap).sort();
+            let pot = settings.potStart;
+            const records = [];
+
+            for (const dateKey of dates) {
+                const candidates = dayMap[dateKey];
+                // Берём кандидата с максимальным нормализованным чеком
+                candidates.sort((a, b) => b.normAvg - a.normAvg);
+
+                const cand = candidates[0];
+                const threshold = settings.thresholds[cand.storeKey] ?? settings.thresholds.other;
+
+                const ok = (cand.sales >= threshold);
+                if (ok) {
+                    records.push({
+                        date: dateKey,
+                        winner: cand.name,
+                        storeLabel: cand.storeLabel,
+                        storeKey: cand.storeKey,
+                        sales: cand.sales,
+                        avgCheck: cand.avgCheck,
+                        normAvg: cand.normAvg,
+                        bonus: pot,
+                        status: 'Победитель подтверждён'
+                    });
+                    pot = settings.potStart;
+                } else {
+                    records.push({
+                        date: dateKey,
+                        winner: '—',
+                        storeLabel: cand.storeLabel,
+                        storeKey: cand.storeKey,
+                        sales: cand.sales,
+                        avgCheck: cand.avgCheck,
+                        normAvg: cand.normAvg,
+                        bonus: 0,
+                        status: `Нет победителя (порог ${threshold.toLocaleString()}₽)`
+                    });
+                    pot += settings.potStep;
+                }
+            }
+
+            return {
+                schema: "ohmygeek.lpn.bonus.week.v1",
+                period: { from: dateFrom, to: dateTo },
+                settings,
+                potEnd: pot,
+                records
+            };
+        }
+
+        function renderWeeklyReport() {
+            const box = document.getElementById('weeklyReportBody');
+            if (!box) return;
+            if (!results || results.length === 0) { box.innerHTML = 'Нет данных.'; return; }
+
+            const w = results[0];
+            box.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:18px;font-weight:800;color:#f1f5f9;">🥇 ${w.name}</div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">📍 ${w.storeLabels || '—'}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:20px;font-weight:800;color:#818cf8;">${w.totalScore} баллов</div>
+                        <div style="font-size:12px;color:#94a3b8;">Выручка: ${w.totalSales.toLocaleString()} ₽ · Ср.чек: ${w.avgCheck.toLocaleString()} ₽ · KPI: ${w.kpi}%</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBonusReport() {
+            const body = document.getElementById('bonusReportBody');
+            const footer = document.getElementById('bonusReportFooter');
+            if (!body || !footer) return;
+
+            if (!bonusReport || !bonusReport.records || bonusReport.records.length === 0) {
+                body.innerHTML = `<tr><td colspan="8" style="color:#94a3b8;">Нет данных по дням (в выгрузках не распознаны даты). Проверь, что в Excel есть колонка с датой в первых 8 столбцах.</td></tr>`;
+                footer.textContent = '';
+                return;
+            }
+
+            body.innerHTML = bonusReport.records.map(r => {
+                const statusColor = r.bonus > 0 ? '#22c55e' : '#f59e0b';
+                const norm = (r.normAvg || 0).toFixed(3);
+                return `
+                    <tr class="${r.bonus > 0 ? 'top-1' : ''}">
+                        <td>${formatDateShort(r.date)}</td>
+                        <td><strong>${r.winner}</strong></td>
+                        <td style="font-size:10px;color:#94a3b8;">${r.storeLabel || '—'}</td>
+                        <td>${(r.sales || 0).toLocaleString()}</td>
+                        <td>${(r.avgCheck || 0).toLocaleString()}</td>
+                        <td>${norm}</td>
+                        <td><strong>${r.bonus ? r.bonus : '—'}</strong></td>
+                        <td style="font-size:11px;color:${statusColor};font-weight:600;">${r.status}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const wins = bonusReport.records.filter(x => x.bonus > 0).length;
+            const sum = bonusReport.records.reduce((s, x) => s + (x.bonus || 0), 0);
+            footer.textContent = `Итого: победителей ${wins} · выдано бонусов ${sum} · следующий стартовый бонус будет ${bonusReport.potEnd} (если последний день был без победителя).`;
+        }
+
+        function downloadBonusJSON() {
+            if (!bonusReport) {
+                alert('Сначала загрузите Excel и нажмите "Рассчитать".');
+                return;
+            }
+            const blob = new Blob([JSON.stringify(bonusReport, null, 2)], { type: 'application/json;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const df = bonusReport.period?.from || 'from';
+            const dt = bonusReport.period?.to || 'to';
+            a.download = `BonusWinners_${df}_${dt}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+
+
+        function renderPreview() {
+            document.getElementById('preview').classList.add('visible');
+            const body = document.getElementById('previewBody');
+            
+            body.innerHTML = results.map((s, i) => {
+                const rank = i + 1;
+                const topClass = rank <= 3 ? `top-${rank}` : '';
+                const kpiClass = s.kpi >= 50 ? 'kpi-good' : (s.kpi >= 40 ? 'kpi-warn' : 'kpi-bad');
+                
+                // Тренд общий
+                let trendHtml = '<span class="trend trend-new">NEW</span>';
+                if (s.trend !== null) {
+                    const cls = s.trend > 0 ? 'trend-up' : (s.trend < 0 ? 'trend-down' : 'trend-new');
+                    const sign = s.trend > 0 ? '+' : '';
+                    trendHtml = `<span class="trend ${cls}">${sign}${s.trend}</span>`;
+                }
+                
+                // vs магазин (checkDeltaPct)
+                const vsStoreClass = s.checkDeltaPct >= 0 ? 'trend-up' : 'trend-down';
+                const vsStoreHtml = `<span class="trend ${vsStoreClass}">${s.checkDeltaPct >= 0 ? '+' : ''}${s.checkDeltaPct}%</span>`;
+                
+                // vs прошлая неделя (checkGrowthPct)
+                let vsWeekHtml = '<span class="trend trend-new">—</span>';
+                if (s.checkGrowthPct !== null) {
+                    const cls = s.checkGrowthPct >= 0 ? 'trend-up' : 'trend-down';
+                    vsWeekHtml = `<span class="trend ${cls}">${s.checkGrowthPct >= 0 ? '+' : ''}${s.checkGrowthPct}%</span>`;
+                }
+                
+                return `
+                    <tr class="${topClass}">
+                        <td><strong>${rank}</strong></td>
+                        <td>${s.name}</td>
+                        <td style="font-size:10px;color:#94a3b8;">${s.storeLabels || '—'}</td>
+                        <td>${s.totalSales.toLocaleString()}</td>
+                        <td>${s.avgCheck.toLocaleString()}</td>
+                        <td>${vsStoreHtml}</td>
+                        <td>${vsWeekHtml}</td>
+                        <td><span class="kpi-badge ${kpiClass}">${s.kpi}%</span></td>
+                        <td>${s.newCards}</td>
+                        <td><strong>${s.totalScore}</strong></td>
+                        <td>${trendHtml}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
+            renderWeeklyReport();
+            renderBonusReport();
+        }
+        
+        // ===== PDF ГЕНЕРАЦИЯ =====
+        
+        function buildSnapshot(dateFrom, dateTo) {
+            const totalSales = results.reduce((s, x) => s + x.totalSales, 0);
+            const totalChecks = results.reduce((s, x) => s + x.checkCount, 0);
+            const avgKpi = Math.round(results.reduce((s, x) => s + x.kpi, 0) / Math.max(1, results.length));
+            const totalCards = results.reduce((s, x) => s + x.newCards, 0);
+
+            // Создаём объект sellers для быстрого поиска в истории
+            const sellersMap = {};
+            results.forEach((r, idx) => {
+                sellersMap[r.name] = {
+                    rank: idx + 1,
+                    totalScore: r.totalScore,
+                    totalSales: r.totalSales,
+                    avgCheck: r.avgCheck,
+                    kpi: r.kpi,
+                    newCards: r.newCards,
+                    checkDeltaPct: r.checkDeltaPct,
+                    storeKey: r.storeKey
+                };
+            });
+
+            return {
+                schema: "ohmygeek.best_seller.week.v2",
+                createdAt: new Date().toISOString(),
+                period: { from: dateFrom, to: dateTo },
+                totals: { sales: totalSales, checks: totalChecks, kpi: avgKpi, cards: totalCards },
+                sellers: sellersMap, // Для быстрого поиска истории
+                winner: results[0] ? {
+                    name: results[0].name,
+                    totalScore: results[0].totalScore,
+                    kpi: results[0].kpi,
+                    totalSales: results[0].totalSales,
+                    checkCount: results[0].checkCount,
+                    avgCheck: results[0].avgCheck,
+                    storeKey: results[0].storeKey || null,
+                    checkDeltaPct: results[0].checkDeltaPct,
+                    newCards: results[0].newCards
+                } : null,
+                bonusReport: bonusReport,
+                results: results.map((r, idx) => ({
+                    rank: idx + 1,
+                    name: r.name,
+                    totalScore: r.totalScore,
+                    totalSales: r.totalSales,
+                    checkCount: r.checkCount,
+                    avgCheck: r.avgCheck,
+                    storeKey: r.storeKey || null,
+                    storeLabels: r.storeLabels,
+                    checkDeltaPct: r.checkDeltaPct,
+                    kpi: r.kpi,
+                    newCards: r.newCards
+                }))
+            };
+        }
+
+        function saveSnapshotToLocalHistory(snapshot) {
+            // Храним историю локально, чтобы динамика работала без загрузок
+            const key = "ohmygeek_best_seller_history_v1";
+            let arr = [];
+            try { arr = JSON.parse(localStorage.getItem(key) || "[]"); } catch(e) { arr = []; }
+
+            // уникальность по периоду
+            const id = `${snapshot.period.from}_${snapshot.period.to}`;
+            arr = arr.filter(x => `${x.period?.from}_${x.period?.to}` !== id);
+            arr.push(snapshot);
+
+            // оставим последние 30 недель
+            arr.sort((a,b) => (a.period?.to || "").localeCompare(b.period?.to || ""));
+            if (arr.length > 30) arr = arr.slice(arr.length - 30);
+
+            localStorage.setItem(key, JSON.stringify(arr));
+        }
+
+        function loadLocalHistory() {
+            const key = "ohmygeek_best_seller_history_v1";
+            try {
+                const arr = JSON.parse(localStorage.getItem(key) || "[]");
+
+                for (const s of arr) {
+                    if (!s || !s.period || !s.period.from || !s.period.to) continue;
+
+                    // Нормализуем sellers
+                    let sellersMap = s.sellers || {};
+                    if ((!sellersMap || Object.keys(sellersMap).length === 0) && Array.isArray(s.results)) {
+                        sellersMap = {};
+                        for (const r of s.results) {
+                            if (!r || !r.name) continue;
+                            sellersMap[r.name] = {
+                                rank: r.rank,
+                                totalScore: r.totalScore,
+                                totalSales: r.totalSales,
+                                avgCheck: r.avgCheck,
+                                kpi: r.kpi,
+                                newCards: r.newCards
+                            };
+                        }
+                    }
+
+                    const weekObj = {
+                        id: `${s.period.from}_${s.period.to}`,
+                        source: 'local',
+                        period: { start: s.period.from, end: s.period.to },
+                        totals: s.totals || { sales: 0, checks: 0, kpi: 0, cards: 0 },
+                        sellers: sellersMap
+                    };
+                    upsertHistoryWeek(weekObj);
+                }
+
+                sortHistory();
+                renderHistory();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+
+        function renderHistoryChips() {
+            // совместимость со старым вызовом
+            renderHistory();
+        }
+
+
+        function downloadJSONSnapshot() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            if (!dateFrom || !dateTo || !results.length) {
+                alert('Сначала загрузите Excel, выберите даты и нажмите "Рассчитать".');
+                return;
+            }
+            const snapshot = buildSnapshot(dateFrom, dateTo);
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `BestSeller_${dateFrom}_${dateTo}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+
+        async function generatePDF() {
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            loading.classList.add('visible');
+
+            try {
+                loadingText.textContent = 'Загрузка шрифтов...';
+                await document.fonts.ready;
+                await new Promise(r => setTimeout(r, 200));
+
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
+                if (!dateFrom || !dateTo || !results.length) {
+                    alert('Сначала загрузите Excel, выберите даты и нажмите "Рассчитать".');
+                    return;
+                }
+
+                const period = `${formatDate(dateFrom)} – ${formatDate(dateTo)}`;
+                const winner = results[0];
+
+                const totalSales = results.reduce((s, x) => s + x.totalSales, 0);
+                const totalChecks = results.reduce((s, x) => s + x.checkCount, 0);
+                const avgKpi = Math.round(results.reduce((s, x) => s + x.kpi, 0) / results.length);
+                const totalCards = results.reduce((s, x) => s + x.newCards, 0);
+
+                let comparison = null;
+                if (historyData.length > 0) {
+                    const lastWeek = historyData[historyData.length - 1];
+                    comparison = {
+                        salesDiff: lastWeek.totals.sales ? totalSales - lastWeek.totals.sales : null,
+                        kpiDiff: lastWeek.totals.kpi ? avgKpi - lastWeek.totals.kpi : null
+                    };
+                }
+
+                // JSON-слепок: сохраняем локально, чтобы динамика работала без парсинга PDF
+                const snapshot = buildSnapshot(dateFrom, dateTo);
+                saveSnapshotToLocalHistory(snapshot);
+
+                loadingText.textContent = 'Генерация страниц...';
+                const container = document.getElementById('pdfContainer');
+                container.innerHTML = buildPDFHtml(winner, period, comparison, totalSales, totalChecks, avgKpi, totalCards);
+
+                // ключевой момент: контейнер должен быть "в кадре", иначе html2canvas сдвигает контент
+                container.style.position = 'fixed';
+                container.style.left = '0';
+                container.style.top = '0';
+                container.style.opacity = '0';
+                container.style.pointerEvents = 'none';
+                container.style.zIndex = '0';
+
+                await new Promise(r => setTimeout(r, 200));
+
+                loadingText.textContent = 'Сборка PDF...';
+
+                const pages = Array.from(container.querySelectorAll('.pdf-page'));
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    unit: 'px',
+                    format: [794, 1123],
+                    orientation: 'portrait'
+                });
+
+                for (let i = 0; i < pages.length; i++) {
+                    const pageEl = pages[i];
+
+                    const canvas = await html2canvas(pageEl, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        scrollX: 0,
+                        scrollY: 0,
+                        windowWidth: 794,
+                        windowHeight: 1123
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                    if (i > 0) pdf.addPage([794, 1123], 'portrait');
+                    {
+                        const pageW = 794, pageH = 1123;
+                        const imgW = canvas.width;
+                        const imgH = canvas.height;
+                        const ratio = Math.min(pageW / imgW, pageH / imgH);
+                        const w = imgW * ratio;
+                        const h = imgH * ratio;
+                        const x = (pageW - w) / 2;
+                        const y = (pageH - h) / 2;
+                        pdf.addImage(imgData, 'JPEG', x, y, w, h);
+                    }
+                }
+
+                pdf.save(`Лучший_продавец_${dateFrom}_${dateTo}.pdf`);
+
+                // вернуть контейнер в исходное состояние
+                container.style.position = 'absolute';
+                container.style.left = '-9999px';
+                container.style.top = '0';
+                container.style.opacity = '1';
+
+                // обновить чипсы истории из localStorage
+                loadLocalHistory();
+
+            } finally {
+                loading.classList.remove('visible');
+            }
+        }
+
+        
+        function buildPDFHtml(winner, period, comparison, totalSales, totalChecks, avgKpi, totalCards) {
+            return `
+                <div class="pdf-report">
+                    <!-- СТРАНИЦА 1 -->
+                    <div class="pdf-page page-winner">
+                        <div class="header-bar">
+                            <h1>🏆 ЛУЧШИЙ ПРОДАВЕЦ НЕДЕЛИ</h1>
+                            <div class="period">${period}</div>
+                            <div class="brand">OH MY GEEK</div>
+                        </div>
+                        <div class="winner-content">
+                            <div class="winner-medal">🥇</div>
+                            <div class="winner-name">${winner.name}</div>
+                            <div style="font-size:14px;color:#64748b;margin-bottom:8px;">📍 ${winner.storeLabels || '—'}</div>
+                            <div class="winner-score">
+                                ${winner.totalScore}
+                                <span class="winner-score-label">баллов</span>
+                                ${winner.trend !== null ? `<span class="winner-trend ${winner.trend >= 0 ? 'up' : 'down'}">(${winner.trend >= 0 ? '+' : ''}${winner.trend})</span>` : ''}
+                            </div>
+                            <div class="winner-prize">🎁 ПРИЗ: 3 000 ₽</div>
+                            <div class="winner-stats">
+                                <div class="winner-stat-box">
+                                    <div class="winner-stat-value">${winner.totalSales.toLocaleString()} ₽</div>
+                                    <div class="winner-stat-label">Продажи</div>
+                                </div>
+                                <div class="winner-stat-box">
+                                    <div class="winner-stat-value">${winner.avgCheck.toLocaleString()} ₽ <span class="mini" style="color:${winner.checkDeltaPct >= 0 ? '#22c55e' : '#ef4444'}">(${winner.checkDeltaPct >= 0 ? '+' : ''}${winner.checkDeltaPct}% к магазину)</span></div>
+                                    <div class="winner-stat-label">Средний чек</div>
+                                </div>
+                                <div class="winner-stat-box">
+                                    <div class="winner-stat-value">${winner.kpi}%</div>
+                                    <div class="winner-stat-label">KPI</div>
+                                </div>
+                                <div class="winner-stat-box">
+                                    <div class="winner-stat-value">${winner.newCards}</div>
+                                    <div class="winner-stat-label">Новых карт</div>
+                                </div>
+                            </div>
+                            ${winner.checkGrowthPct !== null ? `
+                            <div style="margin-top:16px;padding:10px 20px;background:#f0fdf4;border-radius:10px;display:inline-block;">
+                                <span style="color:#16a34a;font-weight:600;">📈 Рост чека vs прошлая неделя: ${winner.checkGrowthPct >= 0 ? '+' : ''}${winner.checkGrowthPct}%</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="page-footer">OH MY GEEK — Еженедельный отчёт</div>
+                    </div>
+                    
+                    <!-- СТРАНИЦА 2 -->
+                    <div class="pdf-page page-break-before">
+                        <div class="page-section-title">📊 Полный рейтинг недели</div>
+                        <table class="rating-table" style="font-size:11px;">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px">#</th>
+                                    <th>Продавец</th>
+                                    <th>Магазин</th>
+                                    <th>Продажи</th>
+                                    <th>Ср.чек</th>
+                                    <th>vs нед.</th>
+                                    <th>KPI</th>
+                                    <th>Карты</th>
+                                    <th>Баллы</th>
+                                    <th>Δ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${results.map((s, i) => {
+                                    const rank = i + 1;
+                                    const rankCls = rank <= 3 ? `rank-${rank}` : 'rank-n';
+                                    const kpiCls = s.kpi >= 50 ? 'table-kpi-good' : (s.kpi >= 40 ? 'table-kpi-warn' : 'table-kpi-bad');
+                                    
+                                    // Тренд общих баллов
+                                    let trendHtml = '<span class="table-trend table-trend-new">NEW</span>';
+                                    if (s.trend !== null) {
+                                        const cls = s.trend > 0 ? 'table-trend-up' : (s.trend < 0 ? 'table-trend-down' : 'table-trend-new');
+                                        trendHtml = `<span class="table-trend ${cls}">${s.trend > 0 ? '+' : ''}${s.trend}</span>`;
+                                    }
+                                    
+                                    // vs неделя (рост чека)
+                                    let vsWeekHtml = '—';
+                                    if (s.checkGrowthPct !== null) {
+                                        const color = s.checkGrowthPct >= 0 ? '#22c55e' : '#ef4444';
+                                        vsWeekHtml = `<span style="color:${color};font-weight:600">${s.checkGrowthPct >= 0 ? '+' : ''}${s.checkGrowthPct}%</span>`;
+                                    }
+                                    
+                                    // vs магазин
+                                    const vsStoreColor = s.checkDeltaPct >= 0 ? '#22c55e' : '#ef4444';
+                                    const vsStoreHtml = `<span style="color:${vsStoreColor}">${s.checkDeltaPct >= 0 ? '+' : ''}${s.checkDeltaPct}%</span>`;
+                                    
+                                    return `
+                                        <tr>
+                                            <td><span class="rank-circle ${rankCls}">${rank}</span></td>
+                                            <td><strong>${s.name}</strong></td>
+                                            <td style="font-size:10px;color:#64748b;">${s.storeLabels || '—'}</td>
+                                            <td>${s.totalSales.toLocaleString()} ₽</td>
+                                            <td>${s.avgCheck.toLocaleString()} ₽ ${vsStoreHtml}</td>
+                                            <td>${vsWeekHtml}</td>
+                                            <td><span class="table-kpi ${kpiCls}">${s.kpi}%</span></td>
+                                            <td>${s.newCards}</td>
+                                            <td class="table-score">${s.totalScore}</td>
+                                            <td>${trendHtml}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="weights-note">
+                            <strong>Веса:</strong> Продажи 35% · Ср.чек (vs магазин) 30% · KPI 20% · Карты 10% · Рост чека 5%<br>
+                            <strong>Базовые чеки:</strong> Ярмарка ${results.BASE_CHECK?.yarmarka || 586}₽ · Алимпик ${results.BASE_CHECK?.olympic || 744}₽ · Три Кота ${results.BASE_CHECK?.tri_kota || 600}₽<br>
+                            <strong>Штраф:</strong> при KPI &lt; 40% баллы за KPI = 0
+                        </div>
+                        <div class="page-footer">OH MY GEEK — Еженедельный отчёт</div>
+                    </div>
+                    
+                    <!-- СТРАНИЦА 3: ДИНАМИКА -->
+<div class="pdf-page page-break-before">
+    <div class="page-section-title">📈 Динамика по неделям</div>
+    <div class="dynamics-grid">
+        ${results.map(s => {
+            const allScores = [...s.history.map(h => h.score), s.totalScore];
+            const maxScore = Math.max(...allScores, 1);
+            const weeks = [
+                ...s.history.map(h => ({ score: h.score, label: h.period ? formatDateShort(h.period.start) : '?' })),
+                { score: s.totalScore, label: 'Сейчас' }
+            ];
+
+            // Расширенная динамика: сравнение с прошлой неделей
+            let detailsHtml = '<div class="dynamics-summary">Недостаточно данных для сравнения</div>';
+            if (s.history.length > 0) {
+                const prev = s.history[s.history.length - 1];
+                const diffScore = (s.totalScore - prev.score);
+                const diffSales = (s.totalSales - (prev.totalSales || 0));
+                const diffAvg = (s.avgCheck - (prev.avgCheck || 0));
+                const diffKpi = (s.kpi - (prev.kpi || 0));
+                const diffCards = (s.newCards - (prev.newCards || 0));
+
+                const c = v => v >= 0 ? '#22c55e' : '#ef4444';
+                const sgn = v => v >= 0 ? '+' : '';
+
+                detailsHtml = `
+                    <div class="dynamics-summary" style="line-height:1.55">
+                        <div><strong>vs прошлая неделя:</strong></div>
+                        <div style="color:${c(diffScore)}">• Баллы: ${sgn(diffScore)}${diffScore.toFixed(1)}</div>
+                        <div style="color:${c(diffSales)}">• Выручка: ${sgn(diffSales)}${diffSales.toLocaleString()} ₽</div>
+                        <div style="color:${c(diffAvg)}">• Ср.чек: ${sgn(diffAvg)}${diffAvg.toLocaleString()} ₽</div>
+                        <div style="color:${c(diffKpi)}">• KPI: ${sgn(diffKpi)}${diffKpi}%</div>
+                        <div style="color:${c(diffCards)}">• Карты: ${sgn(diffCards)}${diffCards}</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="dynamics-card">
+                    <div class="dynamics-name">${s.name}</div>
+                    <div class="dynamics-chart">
+                        ${weeks.map(w => `
+                            <div class="chart-bar" style="height:${Math.max((w.score / maxScore) * 100, 5)}%">
+                                <span class="chart-bar-label">${w.score}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${detailsHtml}
+                </div>
+            `;
+        }).join('')}
+    </div>
+    <div class="page-footer">OH MY GEEK — Еженедельный отчёт</div>
+</div>
+
+<!-- СТРАНИЦА 4: БОНУСЫ -->
+<div class="pdf-page page-break-before">
+    <div class="page-section-title">🎁 Бонусы недели</div>
+
+    ${(() => {
+        const br = bonusReport;
+        if (!br || !Array.isArray(br.records) || br.records.length === 0) {
+            return '<div class="bonus-note">Нет данных по бонусам: в выгрузках не распознаны даты или нет строк за период.</div>';
+        }
+
+        const wins = br.records.filter(x => (x.bonus || 0) > 0).length;
+        const sum = br.records.reduce((s, x) => s + (x.bonus || 0), 0);
+
+        // Итоги по сотрудникам
+        const bySeller = {};
+        for (const r of br.records) {
+            if ((r.bonus || 0) <= 0) continue;
+            const key = r.winner || '—';
+            if (key === '—') continue;
+            if (!bySeller[key]) bySeller[key] = { wins: 0, sum: 0, stores: new Set() };
+            bySeller[key].wins += 1;
+            bySeller[key].sum += (r.bonus || 0);
+            if (r.storeLabel) bySeller[key].stores.add(r.storeLabel);
+        }
+        const sellersArr = Object.entries(bySeller).map(([name, v]) => ({
+            name,
+            wins: v.wins,
+            sum: v.sum,
+            stores: Array.from(v.stores).join(', ')
+        })).sort((a, b) => b.sum - a.sum);
+
+        // Итоги по магазинам
+        const byStore = {};
+        for (const r of br.records) {
+            if ((r.bonus || 0) <= 0) continue;
+            const key = r.storeLabel || '—';
+            if (!byStore[key]) byStore[key] = 0;
+            byStore[key] += (r.bonus || 0);
+        }
+        const storesArr = Object.entries(byStore).map(([store, sum]) => ({ store, sum })).sort((a,b) => b.sum - a.sum);
+
+        const potEnd = br.potEnd || br.settings?.potStart || 200;
+
+        return '<div class="bonus-summary-grid">' +
+            '<div class="bonus-box"><div class="v">' + wins + '</div><div class="l">Победителей (дней)</div></div>' +
+            '<div class="bonus-box"><div class="v">' + sum + '</div><div class="l">Выдано бонусов</div></div>' +
+            '<div class="bonus-box"><div class="v">' + (wins ? Math.round(sum / wins) : 0) + '</div><div class="l">Средний бонус</div></div>' +
+            '<div class="bonus-box"><div class="v">' + potEnd + '</div><div class="l">Стартовый бонус дальше</div></div>' +
+        '</div>' +
+
+        '<div class="bonus-note">' +
+            '<strong>Правило:</strong> 1 победитель в день по нормализованному среднему чеку (с учётом базы магазина).<br>' +
+            'Победитель подтверждается только при выполнении порога выручки магазина. Если порог не выполнен, победителя нет, а бонусный "пот" растёт на +200 и выдаётся первому подтверждённому победителю.' +
+        '</div>' +
+
+        '<div class="page-section-subtitle">Победители по дням</div>' +
+        '<table class="rating-table bonus-table">' +
+            '<thead>' +
+                '<tr>' +
+                    '<th style="width:80px;">Дата</th>' +
+                    '<th>Победитель</th>' +
+                    '<th style="width:120px;">Магазин</th>' +
+                    '<th style="width:90px;">Выручка</th>' +
+                    '<th style="width:90px;">Ср.чек</th>' +
+                    '<th style="width:70px;">Норм</th>' +
+                    '<th style="width:70px;">Бонус</th>' +
+                    '<th style="width:110px;">Статус</th>' +
+                '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+                br.records.map(r => {
+                    const ok = (r.bonus || 0) > 0;
+                    const badge = ok ? '<span class="badge-ok">ВЫДАН</span>' : '<span class="badge-wait">НЕТ</span>';
+                    const norm = (r.normAvg || 0).toFixed(3);
+                    return '<tr>' +
+                        '<td>' + formatDateShort(r.date) + '</td>' +
+                        '<td><strong>' + r.winner + '</strong></td>' +
+                        '<td style="font-size:10px;color:#64748b;">' + (r.storeLabel || '—') + '</td>' +
+                        '<td>' + (r.sales || 0).toLocaleString() + ' ₽</td>' +
+                        '<td>' + (r.avgCheck || 0).toLocaleString() + ' ₽</td>' +
+                        '<td>' + norm + '</td>' +
+                        '<td><strong>' + (ok ? r.bonus : '—') + '</strong></td>' +
+                        '<td>' + badge + '</td>' +
+                    '</tr>';
+                }).join('') +
+            '</tbody>' +
+        '</table>' +
+
+        '<div class="page-section-subtitle">Итоги по сотрудникам</div>' +
+        '<table class="rating-table bonus-table">' +
+            '<thead>' +
+                '<tr>' +
+                    '<th style="width:36px;">#</th>' +
+                    '<th>Сотрудник</th>' +
+                    '<th style="width:70px;">Побед</th>' +
+                    '<th style="width:90px;">Бонус</th>' +
+                    '<th>Магазины</th>' +
+                '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+                (sellersArr.length ? sellersArr.map((x, i) => 
+                    '<tr>' +
+                        '<td><span class="rank-circle ' + (i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : 'rank-n'))) + '">' + (i+1) + '</span></td>' +
+                        '<td><strong>' + x.name + '</strong></td>' +
+                        '<td>' + x.wins + '</td>' +
+                        '<td><strong>' + x.sum + '</strong></td>' +
+                        '<td style="font-size:10px;color:#64748b;">' + (x.stores || '—') + '</td>' +
+                    '</tr>'
+                ).join('') : '<tr><td colspan="5" style="color:#64748b;">Победителей нет (пороги не выполнены).</td></tr>') +
+            '</tbody>' +
+        '</table>' +
+
+        (storesArr.length ? '<div class="bonus-note" style="margin-top:10px;"><strong>Бонусы по магазинам:</strong> ' +
+            storesArr.map(s => s.store + ': <strong>' + s.sum + '</strong>').join(' · ') +
+        '</div>' : '');
+    })()}
+
+    <div class="page-footer">OH MY GEEK — Бонусы недели</div>
+</div>
+
+<!-- СТРАНИЦА 5: ОБУЧЕНИЕ -->
+                    <div class="pdf-page page-break-before">
+                        <div class="page-section-title">📚 План развития</div>
+                        <div class="training-grid">
+                        ${results.slice(0, 6).map((s, i) => {
+                            if (s.weakAreas.length === 0) {
+                                return `
+                                    <div class="training-card priority-low">
+                                        <div class="training-header">
+                                            <span class="training-name">${i + 1}. ${s.name}</span>
+                                            <span class="training-score">${s.totalScore} баллов</span>
+                                        </div>
+                                        <div class="training-area">
+                                            <div class="training-area-title">✅ Отличные показатели!</div>
+                                            <div class="training-tasks">Продолжай в том же духе. Можешь помочь коллегам.</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            const priority = s.weakAreas.length >= 3 ? 'high' : (s.weakAreas.length >= 2 ? 'medium' : 'low');
+                            return `
+                                <div class="training-card priority-${priority}">
+                                    <div class="training-header">
+                                        <span class="training-name">${i + 1}. ${s.name}</span>
+                                        <span class="training-score">${s.totalScore} баллов</span>
+                                    </div>
+                                    ${s.weakAreas.slice(0, 2).map(area => `
+                                        <div class="training-area">
+                                            <div class="training-area-title">${TRAINING[area].title}</div>
+                                            <div class="training-tasks">${TRAINING[area].tasks.map(t => '• ' + t).join('<br>')}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }).join('')}
+                        </div>
+                        <div class="page-footer">OH MY GEEK — Еженедельный отчёт</div>
+                    </div>
+                    
+                    <!-- СТРАНИЦА 6: ИТОГИ -->
+                    <div class="pdf-page page-break-before">
+                        <div class="page-section-title">🏅 Достижения и итоги</div>
+                        
+                        <div class="achievements-grid">
+                            <div class="achievement-box ach-1">
+                                <div class="achievement-title">💰 Лидер продаж</div>
+                                <div class="achievement-value">${[...results].sort((a, b) => b.totalSales - a.totalSales)[0].name} — ${[...results].sort((a, b) => b.totalSales - a.totalSales)[0].totalSales.toLocaleString()} ₽</div>
+                            </div>
+                            <div class="achievement-box ach-2">
+                                <div class="achievement-title">🎯 Лучший средний чек</div>
+                                <div class="achievement-value">${[...results].sort((a, b) => b.avgCheck - a.avgCheck)[0].name} — ${[...results].sort((a, b) => b.avgCheck - a.avgCheck)[0].avgCheck.toLocaleString()} ₽</div>
+                            </div>
+                            <div class="achievement-box ach-3">
+                                <div class="achievement-title">📊 Лучший KPI</div>
+                                <div class="achievement-value">${[...results].sort((a, b) => b.kpi - a.kpi)[0].name} — ${[...results].sort((a, b) => b.kpi - a.kpi)[0].kpi}%</div>
+                            </div>
+                            <div class="achievement-box ach-4">
+                                <div class="achievement-title">💳 Мастер лояльности</div>
+                                <div class="achievement-value">${[...results].sort((a, b) => b.newCards - a.newCards)[0].name} — ${[...results].sort((a, b) => b.newCards - a.newCards)[0].newCards} карт</div>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-grid">
+                            <div class="summary-box">
+                                <div class="summary-value">${totalSales.toLocaleString()} ₽</div>
+                                <div class="summary-label">Общая выручка</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-value">${totalChecks}</div>
+                                <div class="summary-label">Всего чеков</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-value">${avgKpi}%</div>
+                                <div class="summary-label">Средний KPI</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-value">${totalCards}</div>
+                                <div class="summary-label">Новых карт</div>
+                            </div>
+                        </div>
+                        
+                        ${comparison && (comparison.salesDiff !== null || comparison.kpiDiff !== null) ? `
+                        <div class="comparison-box">
+                            <div class="comparison-title">📊 Сравнение с прошлой неделей</div>
+                            <div class="comparison-row">
+                                ${comparison.salesDiff !== null ? `
+                                <div class="comparison-item">
+                                    <div class="comparison-value" style="color:${comparison.salesDiff >= 0 ? '#22c55e' : '#ef4444'}">
+                                        ${comparison.salesDiff >= 0 ? '+' : ''}${comparison.salesDiff.toLocaleString()} ₽
+                                    </div>
+                                    <div class="comparison-label">Выручка</div>
+                                </div>
+                                ` : ''}
+                                ${comparison.kpiDiff !== null ? `
+                                <div class="comparison-item">
+                                    <div class="comparison-value" style="color:${comparison.kpiDiff >= 0 ? '#22c55e' : '#ef4444'}">
+                                        ${comparison.kpiDiff >= 0 ? '+' : ''}${comparison.kpiDiff}%
+                                    </div>
+                                    <div class="comparison-label">KPI команды</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="page-footer">OH MY GEEK — Еженедельный отчёт · ${new Date().toLocaleDateString('ru-RU')}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function formatDate(str) {
+            const m = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            const d = new Date(str);
+            return `${d.getDate()} ${m[d.getMonth()]}`;
+        }
+        
+        function formatDateShort(str) {
+            const d = new Date(str);
+            return `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+        
+        init();
+    </script>
+</body>
+</html>
