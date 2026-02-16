@@ -1,0 +1,1144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OH MY GEEK • Focus Tracker v3.2</title>
+  <style>
+    :root{
+      --bg:#0a0f1a; --card:#111827; --card-hover:#1a2236; --line:rgba(255,255,255,.08);
+      --txt:#e6edf7; --muted:#8b9cb3; --a:#4fd1ff; --p:#ff4fd8;
+      --g:#22c55e; --y:#f59e0b; --r:#ef4444; --purple:#a78bfa;
+      --rad:14px; --shadow:0 4px 20px rgba(0,0,0,.3);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+    
+    .header{background:linear-gradient(135deg, #111827 0%, #1e293b 100%);border-bottom:1px solid var(--line);padding:16px 24px;position:sticky;top:0;z-index:100}
+    .header-inner{max-width:1600px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--a),var(--p));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .logo-badge{font-size:10px;background:var(--p);color:#fff;padding:3px 8px;border-radius:20px;font-weight:600}
+    .header-actions{display:flex;gap:8px;flex-wrap:wrap}
+    
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--txt);
+      padding:10px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;
+      transition:all .15s ease;display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);transform:translateY(-1px)}
+    .btn.primary{border-color:rgba(79,209,255,.4);background:linear-gradient(135deg,rgba(79,209,255,.15),rgba(167,139,250,.15));color:#fff}
+    .btn.primary:hover{background:linear-gradient(135deg,rgba(79,209,255,.25),rgba(167,139,250,.25))}
+    .btn.success{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.12);color:#86efac}
+    .btn.danger{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.12);color:#fca5a5}
+    .btn.small{padding:6px 12px;font-size:12px}
+    
+    .focus-banner{background:linear-gradient(135deg, rgba(79,209,255,.1) 0%, rgba(255,79,216,.1) 100%);
+      border:1px solid rgba(79,209,255,.2);border-radius:16px;padding:20px 24px;margin:20px 24px;max-width:1600px;margin-left:auto;margin-right:auto}
+    .focus-banner h2{font-size:14px;color:var(--muted);font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .focus-banner h2::before{content:"🎯"}
+    .focus-title{font-size:20px;font-weight:700;margin-bottom:12px}
+    .focus-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .focus-next{font-size:14px;color:var(--muted);padding:12px;background:rgba(0,0,0,.2);border-radius:10px;margin-bottom:12px}
+    .focus-next strong{color:var(--a)}
+    .focus-actions{display:flex;gap:8px;flex-wrap:wrap}
+    
+    .main{padding:0 24px 24px;max-width:1600px;margin:0 auto}
+    
+    .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);padding:4px;border-radius:12px;width:fit-content}
+    .tab{padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s}
+    .tab:hover{color:var(--txt)}
+    .tab.active{background:linear-gradient(135deg,rgba(79,209,255,.2),rgba(167,139,250,.2));color:#fff}
+    
+    .kanban{display:grid;grid-template-columns:repeat(3, 1fr);gap:16px;min-height:500px}
+    @media(max-width:1100px){.kanban{grid-template-columns:1fr}}
+    
+    .kanban-column{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);display:flex;flex-direction:column;min-height:400px}
+    .kanban-header{padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+    .kanban-title{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+    .kanban-count{font-size:12px;background:rgba(255,255,255,.1);padding:4px 10px;border-radius:20px;color:var(--muted)}
+    .kanban-body{flex:1;padding:12px;overflow-y:auto;min-height:200px}
+    
+    .col-todo .kanban-header{border-left:3px solid var(--y)}
+    .col-doing .kanban-header{border-left:3px solid var(--p)}
+    .col-done .kanban-header{border-left:3px solid var(--g)}
+    
+    .task-card{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;
+      cursor:grab;transition:all .2s ease;position:relative}
+    .task-card:hover{background:var(--card-hover);border-color:rgba(255,255,255,.12);transform:translateY(-2px);box-shadow:var(--shadow)}
+    .task-card.dragging{opacity:.5;transform:rotate(3deg)}
+    
+    .task-priority{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
+    .task-priority.critical{background:var(--r)}
+    .task-priority.important{background:var(--y)}
+    .task-priority.growth{background:var(--a)}
+    .task-priority.later{background:var(--muted)}
+    
+    .task-title{font-weight:600;font-size:14px;margin-bottom:8px;padding-left:8px}
+    .task-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding-left:8px}
+    .task-next{font-size:12px;color:var(--muted);padding:8px 10px;background:rgba(0,0,0,.2);border-radius:8px;margin-bottom:8px}
+    .task-contact{font-size:12px;color:var(--a);padding:6px 10px;background:rgba(79,209,255,.1);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+    .task-contact::before{content:"📞"}
+    .task-actions{display:flex;gap:6px;padding-left:8px;flex-wrap:wrap}
+    
+    /* Progress bar */
+    .task-progress{margin:8px 0 8px 8px}
+    .progress-track{height:6px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;cursor:pointer;position:relative}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--y),var(--g));border-radius:10px;transition:width .2s}
+    .progress-label{font-size:11px;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between}
+    .progress-label span{cursor:pointer;padding:2px 6px;border-radius:4px}
+    .progress-label span:hover{background:rgba(255,255,255,.1)}
+    
+    .pill{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;white-space:nowrap}
+    .pill.critical{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+    .pill.important{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+    .pill.growth{background:rgba(79,209,255,.15);color:#7dd3fc;border:1px solid rgba(79,209,255,.3)}
+    .pill.later{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--line)}
+    .pill.store{background:rgba(167,139,250,.15);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)}
+    .pill.owner{background:rgba(34,197,94,.15);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+    .pill.overdue{background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.4);animation:pulse 2s infinite}
+    .pill.due{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+    
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+    
+    .quick-add{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:20px;margin-bottom:20px}
+    .quick-add h3{font-size:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .quick-add h3::before{content:"⚡"}
+    .quick-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px;align-items:end}
+    @media(max-width:900px){.quick-form{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.quick-form{grid-template-columns:1fr;}}
+    
+    .form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.03);
+      color:var(--txt);padding:12px;border-radius:10px;outline:none;font-size:14px;transition:border-color .15s}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--a)}
+    .form-group input::placeholder,.form-group textarea::placeholder{color:var(--muted)}
+    .form-group textarea{min-height:80px;resize:vertical;font-family:inherit}
+    
+    .stats-bar{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+    .stat-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 24px;min-width:140px}
+    .stat-value{font-size:28px;font-weight:700}
+    .stat-value.text-green{color:var(--g)}
+    .stat-value.text-yellow{color:var(--y)}
+    .stat-value.text-red{color:var(--r)}
+    .stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+    
+    .progress-bar-big{height:8px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;margin-top:8px}
+    .progress-fill-big{height:100%;background:linear-gradient(90deg,var(--g),var(--a));border-radius:10px;transition:width .3s}
+    
+    /* Journal */
+    .journal{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+    @media(max-width:900px){.journal{grid-template-columns:1fr}}
+    .journal-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px}
+    .journal-card h4{font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .journal-card textarea{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.02);
+      color:var(--txt);padding:12px;border-radius:10px;outline:none;min-height:100px;resize:vertical;font-size:14px;line-height:1.5}
+    .journal-card textarea:focus{border-color:var(--a)}
+    .journal-status{font-size:11px;color:var(--g);margin-top:8px;opacity:0;transition:opacity .3s}
+    .journal-status.show{opacity:1}
+    
+    /* Contacts */
+    .contacts-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px}
+    .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px;transition:all .2s}
+    .contact-card:hover{border-color:rgba(79,209,255,.3);transform:translateY(-2px)}
+    .contact-name{font-weight:600;font-size:16px;margin-bottom:8px}
+    .contact-info{display:flex;flex-direction:column;gap:6px}
+    .contact-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+    .contact-row a{color:var(--a);text-decoration:none}
+    .contact-row a:hover{text-decoration:underline}
+    .contact-tasks{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+    .contact-tasks-title{font-size:12px;color:var(--muted);margin-bottom:8px}
+    .contact-task-item{font-size:12px;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:6px;margin-bottom:4px}
+    
+    .add-contact-form{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:20px;margin-bottom:20px}
+    .add-contact-form h3{font-size:14px;margin-bottom:16px}
+    .add-contact-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end}
+    @media(max-width:800px){.add-contact-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:500px){.add-contact-grid{grid-template-columns:1fr}}
+    
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px;z-index:200;backdrop-filter:blur(4px)}
+    .modal.open{display:flex}
+    .modal-box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .modal-title{font-size:18px;font-weight:600}
+    
+    .report-text{width:100%;border:1px solid var(--line);background:rgba(0,0,0,.3);
+      color:var(--txt);padding:16px;border-radius:12px;min-height:400px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;resize:vertical}
+    
+    .edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:600px){.edit-grid{grid-template-columns:1fr}}
+    .edit-full{grid-column:1/-1}
+    
+    .empty-state{text-align:center;padding:40px;color:var(--muted)}
+    .empty-state-icon{font-size:48px;margin-bottom:12px}
+    
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+    
+    .section{display:none}
+    .section.active{display:block}
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <h1>OH MY GEEK • Focus Tracker</h1>
+      <span class="logo-badge">v3.2</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="reportBtn">📊 Отчёт</button>
+      <button class="btn" id="exportBtn">💾 Экспорт</button>
+      <label class="btn" for="importFile">📂 Импорт</label>
+      <input id="importFile" type="file" accept="application/json" style="display:none" />
+      <button class="btn danger" id="resetBtn">🗑 Сброс</button>
+    </div>
+  </div>
+</header>
+
+<div class="focus-banner" id="focusBanner">
+  <h2>Одна задача сейчас <span id="focusMode" class="pill later">автовыбор</span></h2>
+  <div class="focus-title" id="focusTitle">Загрузка...</div>
+  <div class="focus-meta" id="focusMeta"></div>
+  <div class="focus-next" id="focusNext"><strong>Следующий шаг:</strong> —</div>
+  <div class="focus-actions" id="focusActions"></div>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <div class="tab active" data-tab="kanban">📋 Kanban</div>
+    <div class="tab" data-tab="contacts">📇 Контакты</div>
+    <div class="tab" data-tab="journal">📝 Дневник</div>
+    <div class="tab" data-tab="stats">📈 Статистика</div>
+  </div>
+
+  <!-- Kanban -->
+  <section class="section active" id="kanban">
+    <div class="quick-add">
+      <h3>Быстро добавить задачу</h3>
+      <div class="quick-form">
+        <div class="form-group">
+          <label>Название</label>
+          <input id="qTitle" placeholder="Например: АТОЛ для Три Кота" />
+        </div>
+        <div class="form-group">
+          <label>Приоритет</label>
+          <select id="qPriority">
+            <option value="critical">🔴 Критично</option>
+            <option value="important">🟡 Важно</option>
+            <option value="growth">🔵 Развитие</option>
+            <option value="later">⚪ Отложить</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Магазин</label>
+          <select id="qStore">
+            <option value="Офис/Онлайн">🏢 Офис</option>
+            <option value="Алимпик">🛒 Алимпик</option>
+            <option value="Ярмарка">🛒 Ярмарка</option>
+            <option value="Три Кота">🐱 Три Кота</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Срок</label>
+          <input id="qDue" type="date" />
+        </div>
+        <button class="btn primary" id="addBtn">➕ Добавить</button>
+      </div>
+    </div>
+
+    <div class="kanban">
+      <div class="kanban-column col-todo" data-status="todo">
+        <div class="kanban-header">
+          <div class="kanban-title">📋 Сделать</div>
+          <div class="kanban-count" id="countTodo">0</div>
+        </div>
+        <div class="kanban-body" id="colTodo"></div>
+      </div>
+      
+      <div class="kanban-column col-doing" data-status="doing">
+        <div class="kanban-header">
+          <div class="kanban-title">🔥 В работе <span style="font-size:11px;color:var(--muted)">(макс. 3)</span></div>
+          <div class="kanban-count" id="countDoing">0</div>
+        </div>
+        <div class="kanban-body" id="colDoing"></div>
+      </div>
+      
+      <div class="kanban-column col-done" data-status="done">
+        <div class="kanban-header">
+          <div class="kanban-title">✅ Готово</div>
+          <div class="kanban-count" id="countDone">0</div>
+        </div>
+        <div class="kanban-body" id="colDone"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacts -->
+  <section class="section" id="contacts">
+    <div class="add-contact-form">
+      <h3>➕ Добавить контакт</h3>
+      <div class="add-contact-grid">
+        <div class="form-group">
+          <label>Имя / Компания</label>
+          <input id="cName" placeholder="Например: ЭКОЦЕНТР" />
+        </div>
+        <div class="form-group">
+          <label>Телефон</label>
+          <input id="cPhone" placeholder="+7 900 000-00-00" />
+        </div>
+        <div class="form-group">
+          <label>Заметка</label>
+          <input id="cNote" placeholder="Вывоз мусора, менеджер Иван" />
+        </div>
+        <button class="btn primary" id="addContactBtn">➕</button>
+      </div>
+    </div>
+    
+    <div class="contacts-grid" id="contactsList"></div>
+  </section>
+
+  <!-- Journal -->
+  <section class="section" id="journal">
+    <div class="journal">
+      <div class="journal-card">
+        <h4>✅ Что сделал сегодня</h4>
+        <textarea id="jDone" placeholder="Факты: что удалось сделать..."></textarea>
+        <div class="journal-status" id="jDoneStatus">💾 Сохранено</div>
+      </div>
+      <div class="journal-card">
+        <h4>🚧 Где застрял / не сделал</h4>
+        <textarea id="jStuck" placeholder="Что не получилось и почему..."></textarea>
+        <div class="journal-status" id="jStuckStatus">💾 Сохранено</div>
+      </div>
+      <div class="journal-card">
+        <h4>🎯 Завтра</h4>
+        <textarea id="jNext" placeholder="Одна главная задача + 1-2 второстепенных..."></textarea>
+        <div class="journal-status" id="jNextStatus">💾 Сохранено</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center">
+      <span style="font-size:13px;color:var(--g)">✓ Автосохранение включено</span>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="section" id="stats">
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Всего задач</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value text-green" id="statDone">0</div>
+        <div class="stat-label">Выполнено</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value text-yellow" id="statDoing">0</div>
+        <div class="stat-label">В работе</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value text-red" id="statOverdue">0</div>
+        <div class="stat-label">Просрочено</div>
+      </div>
+      <div class="stat-item" style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="stat-label">Прогресс</span>
+          <span id="statPercent">0%</span>
+        </div>
+        <div class="progress-bar-big">
+          <div class="progress-fill-big" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-add">
+      <h3>📊 Формула автоприоритета</h3>
+      <p style="color:var(--muted);font-size:14px;line-height:1.6">
+        <strong>Скор</strong> = База + Просрочка×50К + Скоро×20К + Задержка₽/день + Прогресс×500<br><br>
+        • <span style="color:var(--r)">Критично</span> = 400К &nbsp;
+        • <span style="color:var(--y)">Важно</span> = 250К &nbsp;
+        • <span style="color:var(--a)">Развитие</span> = 120К &nbsp;
+        • <span style="color:var(--muted)">Отложить</span> = 20К
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- Report Modal -->
+<div class="modal" id="reportModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">📊 Отчёт дня</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn small" id="copyReport">📋 Копировать</button>
+        <button class="btn small danger" id="closeReport">✕</button>
+      </div>
+    </div>
+    <textarea class="report-text" id="reportText"></textarea>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Редактировать задачу</div>
+      <button class="btn small danger" id="closeEdit">✕</button>
+    </div>
+    <div class="edit-grid">
+      <div class="form-group edit-full">
+        <label>Название</label>
+        <input id="eTitle" />
+      </div>
+      <div class="form-group">
+        <label>Приоритет</label>
+        <select id="ePriority">
+          <option value="critical">🔴 Критично</option>
+          <option value="important">🟡 Важно</option>
+          <option value="growth">🔵 Развитие</option>
+          <option value="later">⚪ Отложить</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Статус</label>
+        <select id="eStatus">
+          <option value="todo">📋 Сделать</option>
+          <option value="doing">🔥 В работе</option>
+          <option value="done">✅ Готово</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Магазин</label>
+        <select id="eStore">
+          <option value="Офис/Онлайн">🏢 Офис</option>
+          <option value="Алимпик">🛒 Алимпик</option>
+          <option value="Ярмарка">🛒 Ярмарка</option>
+          <option value="Три Кота">🐱 Три Кота</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ответственный</label>
+        <input id="eOwner" placeholder="Пётр / Дмитрий" />
+      </div>
+      <div class="form-group">
+        <label>Срок</label>
+        <input id="eDue" type="date" />
+      </div>
+      <div class="form-group">
+        <label>Задержка (₽/день)</label>
+        <input id="eDelay" type="number" placeholder="5000" />
+      </div>
+      <div class="form-group">
+        <label>Прогресс: <span id="eProgressLabel">0%</span></label>
+        <input id="eProgress" type="range" min="0" max="100" step="10" value="0" style="width:100%;cursor:pointer" />
+      </div>
+      <div class="form-group edit-full">
+        <label>Следующий шаг</label>
+        <input id="eNext" placeholder="Конкретное действие на 5-15 мин..." />
+      </div>
+      <div class="form-group edit-full">
+        <label>📞 Контакт (телефон, имя)</label>
+        <input id="eContact" placeholder="+7 900 000-00-00, Иван из ЭКОЦЕНТР" />
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="saveEdit">💾 Сохранить</button>
+      <button class="btn" id="pinTask">📌 Закрепить</button>
+      <button class="btn success" id="completeTask">✅ Завершить</button>
+      <button class="btn danger" id="deleteTask">🗑 Удалить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "omg_focus_v3";
+const today = () => new Date().toISOString().slice(0,10);
+const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+const PRIORITIES = {
+  critical: {name:"Критично", emoji:"🔴", base:400000},
+  important: {name:"Важно", emoji:"🟡", base:250000},
+  growth: {name:"Развитие", emoji:"🔵", base:120000},
+  later: {name:"Отложить", emoji:"⚪", base:20000}
+};
+
+const MAX_DOING = 3;
+
+let state = loadState();
+let editingId = null;
+let draggedId = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (!s.contacts) s.contacts = [];
+      // Migrate tasks: add progress if missing
+      s.tasks = s.tasks.map(t => ({...t, progress: t.progress || 0, contact: t.contact || ''}));
+      return s;
+    }
+  } catch(e) {}
+  return getDefaultState();
+}
+
+function getDefaultState() {
+  return {
+    pinnedId: null,
+    tasks: [
+      {id:uid(), title:"АТОЛ для Три Кота", priority:"critical", status:"todo", due:"2026-02-20",
+        store:"Три Кота", owner:"Пётр", delay:8000, next:"Заказать АТОЛ (15 мин)", progress:0, contact:"",
+        createdAt:new Date().toISOString(), doneAt:null},
+    ],
+    contacts: [
+      {id:uid(), name:"ЭКОЦЕНТР", phone:"9275697291", note:"Вывоз мусора"},
+    ],
+    journal: {}
+  };
+}
+
+function saveState() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+// === SCORING ===
+function scoreTask(t) {
+  let score = (PRIORITIES[t.priority] || PRIORITIES.important).base;
+  score += Number(t.delay) || 0;
+  score += (t.progress || 0) * 500; // Boost tasks with progress
+  
+  if (t.due && t.status !== 'done') {
+    const days = daysDiff(today(), t.due);
+    if (days < 0) score += Math.abs(days) * 50000;
+    else if (days <= 2) score += 20000;
+  }
+  if (t.status === 'doing') score += 60000;
+  return score;
+}
+
+function daysDiff(from, to) {
+  return Math.round((new Date(to+'T00:00:00Z') - new Date(from+'T00:00:00Z')) / 86400000);
+}
+
+function isOverdue(t) {
+  return t.due && t.status !== 'done' && new Date(t.due) < new Date(today());
+}
+
+function sortTasks(tasks) {
+  return [...tasks].sort((a, b) => scoreTask(b) - scoreTask(a));
+}
+
+function getFocus() {
+  const pinned = state.tasks.find(t => t.id === state.pinnedId && t.status !== 'done');
+  if (pinned) return {task: pinned, mode: 'закреплено'};
+  const sorted = sortTasks(state.tasks.filter(t => t.status !== 'done'));
+  return {task: sorted[0] || null, mode: 'автовыбор'};
+}
+
+// === RENDER ===
+function render() {
+  renderFocus();
+  renderKanban();
+  renderContacts();
+  renderStats();
+}
+
+function renderFocus() {
+  const {task, mode} = getFocus();
+  document.getElementById('focusMode').textContent = mode;
+  
+  if (!task) {
+    document.getElementById('focusTitle').textContent = '🎉 Все задачи выполнены!';
+    document.getElementById('focusMeta').innerHTML = '';
+    document.getElementById('focusNext').innerHTML = '<strong>Следующий шаг:</strong> Добавь новую задачу';
+    document.getElementById('focusActions').innerHTML = '';
+    return;
+  }
+  
+  document.getElementById('focusTitle').textContent = task.title;
+  
+  const pr = PRIORITIES[task.priority] || PRIORITIES.important;
+  const overdue = isOverdue(task);
+  
+  let meta = `<span class="pill ${task.priority}">${pr.emoji} ${pr.name}</span>`;
+  if (task.store) meta += `<span class="pill store">📍 ${task.store}</span>`;
+  if (task.owner) meta += `<span class="pill owner">👤 ${task.owner}</span>`;
+  if (task.progress > 0) meta += `<span class="pill growth">📊 ${task.progress}%</span>`;
+  if (overdue) meta += `<span class="pill overdue">⚠️ Просрочено</span>`;
+  else if (task.due) {
+    const days = daysDiff(today(), task.due);
+    if (days === 0) meta += `<span class="pill due">🔥 Сегодня</span>`;
+    else if (days > 0 && days <= 2) meta += `<span class="pill due">⏰ ${days} дн.</span>`;
+  }
+  
+  document.getElementById('focusMeta').innerHTML = meta;
+  
+  let nextHtml = `<strong>Следующий шаг:</strong> ${task.next || '—'}`;
+  if (task.contact) nextHtml += `<br><span style="color:var(--a)">📞 ${escapeHtml(task.contact)}</span>`;
+  document.getElementById('focusNext').innerHTML = nextHtml;
+  
+  document.getElementById('focusActions').innerHTML = `
+    <button class="btn primary" onclick="setStatus('${task.id}', 'doing')">🔥 В работу</button>
+    <button class="btn success" onclick="setStatus('${task.id}', 'done')">✅ Готово</button>
+    <button class="btn" onclick="quickProgress('${task.id}')">📊 +10%</button>
+    <button class="btn" onclick="openEdit('${task.id}')">✏️</button>
+  `;
+}
+
+function renderKanban() {
+  const columns = {
+    todo: document.getElementById('colTodo'),
+    doing: document.getElementById('colDoing'),
+    done: document.getElementById('colDone')
+  };
+  
+  Object.keys(columns).forEach(status => {
+    let tasks = state.tasks.filter(t => t.status === status);
+    if (status === 'done') {
+      // Show only today's done
+      const d = today();
+      tasks = tasks.filter(t => t.doneAt && t.doneAt.slice(0,10) === d);
+    }
+    tasks = sortTasks(tasks);
+    const col = columns[status];
+    
+    document.getElementById(`count${status.charAt(0).toUpperCase() + status.slice(1)}`).textContent = 
+      status === 'done' ? state.tasks.filter(t => t.status === 'done').length : tasks.length;
+    
+    if (tasks.length === 0) {
+      col.innerHTML = `<div class="empty-state"><div class="empty-state-icon">${status === 'done' ? '🎯' : '📭'}</div>Пусто</div>`;
+      return;
+    }
+    
+    col.innerHTML = tasks.map(t => renderTaskCard(t)).join('');
+    
+    col.querySelectorAll('.task-card').forEach(card => {
+      card.draggable = true;
+      card.addEventListener('dragstart', handleDragStart);
+      card.addEventListener('dragend', handleDragEnd);
+    });
+  });
+  
+  document.querySelectorAll('.kanban-body').forEach(body => {
+    body.addEventListener('dragover', handleDragOver);
+    body.addEventListener('dragleave', handleDragLeave);
+    body.addEventListener('drop', handleDrop);
+  });
+}
+
+function renderTaskCard(t) {
+  const pr = PRIORITIES[t.priority] || PRIORITIES.important;
+  const overdue = isOverdue(t);
+  const progress = t.progress || 0;
+  
+  let meta = '';
+  if (t.store) meta += `<span class="pill store">${t.store}</span>`;
+  if (t.owner) meta += `<span class="pill owner">${t.owner}</span>`;
+  if (overdue) meta += `<span class="pill overdue">Просрочено</span>`;
+  else if (t.due) {
+    const days = daysDiff(today(), t.due);
+    if (days === 0) meta += `<span class="pill due">Сегодня</span>`;
+    else if (days > 0 && days <= 3) meta += `<span class="pill due">${days} дн.</span>`;
+  }
+  
+  const progressHtml = t.status !== 'done' ? `
+    <div class="task-progress">
+      <div class="progress-track" onclick="cycleProgress('${t.id}', event)">
+        <div class="progress-fill" style="width:${progress}%"></div>
+      </div>
+      <div class="progress-label">
+        <span onclick="setProgress('${t.id}', 0)">0%</span>
+        <span onclick="setProgress('${t.id}', 25)">25%</span>
+        <span onclick="setProgress('${t.id}', 50)">50%</span>
+        <span onclick="setProgress('${t.id}', 75)">75%</span>
+        <span onclick="setProgress('${t.id}', 100)">100%</span>
+      </div>
+    </div>
+  ` : '';
+  
+  const contactHtml = t.contact ? `<div class="task-contact">${escapeHtml(t.contact)}</div>` : '';
+  
+  return `
+    <div class="task-card fade-in" data-id="${t.id}">
+      <div class="task-priority ${t.priority}"></div>
+      <div class="task-title">${escapeHtml(t.title)}</div>
+      <div class="task-meta">${meta}</div>
+      ${progressHtml}
+      ${t.next ? `<div class="task-next">→ ${escapeHtml(t.next)}</div>` : ''}
+      ${contactHtml}
+      <div class="task-actions">
+        ${t.status !== 'done' ? `<button class="btn small primary" onclick="setStatus('${t.id}', 'doing')">🔥</button>` : ''}
+        ${t.status !== 'done' ? `<button class="btn small success" onclick="setStatus('${t.id}', 'done')">✅</button>` : ''}
+        <button class="btn small" onclick="openEdit('${t.id}')">✏️</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderContacts() {
+  const list = document.getElementById('contactsList');
+  
+  if (state.contacts.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📇</div>Нет контактов</div>';
+    return;
+  }
+  
+  list.innerHTML = state.contacts.map(c => {
+    const relatedTasks = state.tasks.filter(t => 
+      t.contact && t.contact.toLowerCase().includes(c.name.toLowerCase()) ||
+      t.contact && c.phone && t.contact.includes(c.phone)
+    );
+    
+    const tasksHtml = relatedTasks.length > 0 ? `
+      <div class="contact-tasks">
+        <div class="contact-tasks-title">Связанные задачи:</div>
+        ${relatedTasks.slice(0,3).map(t => `<div class="contact-task-item">${escapeHtml(t.title)}</div>`).join('')}
+      </div>
+    ` : '';
+    
+    return `
+      <div class="contact-card fade-in">
+        <div class="contact-name">${escapeHtml(c.name)}</div>
+        <div class="contact-info">
+          ${c.phone ? `<div class="contact-row">📞 <a href="tel:${c.phone}">${escapeHtml(c.phone)}</a></div>` : ''}
+          ${c.note ? `<div class="contact-row">📝 ${escapeHtml(c.note)}</div>` : ''}
+        </div>
+        ${tasksHtml}
+        <div style="margin-top:12px">
+          <button class="btn small danger" onclick="deleteContact('${c.id}')">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStats() {
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.status === 'done').length;
+  const doing = state.tasks.filter(t => t.status === 'doing').length;
+  const overdue = state.tasks.filter(t => isOverdue(t)).length;
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+  
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statDoing').textContent = doing;
+  document.getElementById('statOverdue').textContent = overdue;
+  document.getElementById('statPercent').textContent = percent + '%';
+  document.getElementById('progressFill').style.width = percent + '%';
+}
+
+// === PROGRESS ===
+function setProgress(id, value) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  task.progress = value;
+  if (value === 100 && task.status !== 'done') {
+    task.status = 'done';
+    task.doneAt = new Date().toISOString();
+    if (state.pinnedId === id) state.pinnedId = null;
+  }
+  saveState();
+  render();
+}
+
+function cycleProgress(id, event) {
+  event.stopPropagation();
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  const steps = [0, 25, 50, 75, 100];
+  const idx = steps.indexOf(task.progress || 0);
+  task.progress = steps[(idx + 1) % steps.length];
+  if (task.progress === 100 && task.status !== 'done') {
+    task.status = 'done';
+    task.doneAt = new Date().toISOString();
+    if (state.pinnedId === id) state.pinnedId = null;
+  }
+  saveState();
+  render();
+}
+
+function quickProgress(id) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  task.progress = Math.min(100, (task.progress || 0) + 10);
+  if (task.progress === 100 && task.status !== 'done') {
+    task.status = 'done';
+    task.doneAt = new Date().toISOString();
+    if (state.pinnedId === id) state.pinnedId = null;
+  }
+  saveState();
+  render();
+}
+
+// === DRAG & DROP ===
+function handleDragStart(e) {
+  draggedId = e.target.dataset.id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd(e) {
+  e.target.classList.remove('dragging');
+  draggedId = null;
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragLeave(e) {}
+
+function handleDrop(e) {
+  e.preventDefault();
+  if (!draggedId) return;
+  const column = e.currentTarget.closest('.kanban-column');
+  if (!column) return;
+  setStatus(draggedId, column.dataset.status, true);
+}
+
+// === ACTIONS ===
+function setStatus(id, status, fromDrag = false) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  
+  if (status === 'doing') {
+    const currentDoing = state.tasks.filter(t => t.status === 'doing' && t.id !== id);
+    if (currentDoing.length >= MAX_DOING) {
+      alert(`⚠️ Максимум ${MAX_DOING} задачи в работе!`);
+      return;
+    }
+  }
+  
+  task.status = status;
+  if (status === 'done') {
+    task.doneAt = new Date().toISOString();
+    task.progress = 100;
+    if (state.pinnedId === id) state.pinnedId = null;
+  }
+  
+  saveState();
+  render();
+}
+
+function addTask() {
+  const title = document.getElementById('qTitle').value.trim();
+  if (!title) return;
+  
+  state.tasks.push({
+    id: uid(),
+    title,
+    priority: document.getElementById('qPriority').value,
+    status: 'todo',
+    store: document.getElementById('qStore').value,
+    due: document.getElementById('qDue').value,
+    owner: 'Пётр',
+    delay: 0,
+    next: '',
+    progress: 0,
+    contact: '',
+    createdAt: new Date().toISOString(),
+    doneAt: null
+  });
+  
+  document.getElementById('qTitle').value = '';
+  document.getElementById('qDue').value = '';
+  saveState();
+  render();
+}
+
+function openEdit(id) {
+  editingId = id;
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  
+  document.getElementById('eTitle').value = task.title || '';
+  document.getElementById('ePriority').value = task.priority || 'important';
+  document.getElementById('eStatus').value = task.status || 'todo';
+  document.getElementById('eStore').value = task.store || 'Офис/Онлайн';
+  document.getElementById('eOwner').value = task.owner || '';
+  document.getElementById('eDue').value = task.due || '';
+  document.getElementById('eDelay').value = task.delay || '';
+  document.getElementById('eNext').value = task.next || '';
+  document.getElementById('eProgress').value = task.progress || 0;
+  document.getElementById('eProgressLabel').textContent = (task.progress || 0) + '%';
+  document.getElementById('eContact').value = task.contact || '';
+  
+  document.getElementById('editModal').classList.add('open');
+}
+
+function saveEdit() {
+  const task = state.tasks.find(t => t.id === editingId);
+  if (!task) return;
+  
+  const newStatus = document.getElementById('eStatus').value;
+  
+  if (newStatus === 'doing' && task.status !== 'doing') {
+    const currentDoing = state.tasks.filter(t => t.status === 'doing');
+    if (currentDoing.length >= MAX_DOING) {
+      alert(`⚠️ Максимум ${MAX_DOING} задачи в работе!`);
+      return;
+    }
+  }
+  
+  task.title = document.getElementById('eTitle').value.trim();
+  task.priority = document.getElementById('ePriority').value;
+  task.status = newStatus;
+  task.store = document.getElementById('eStore').value;
+  task.owner = document.getElementById('eOwner').value.trim();
+  task.due = document.getElementById('eDue').value;
+  task.delay = parseInt(document.getElementById('eDelay').value) || 0;
+  task.next = document.getElementById('eNext').value.trim();
+  task.progress = parseInt(document.getElementById('eProgress').value) || 0;
+  task.contact = document.getElementById('eContact').value.trim();
+  
+  if (newStatus === 'done' && !task.doneAt) {
+    task.doneAt = new Date().toISOString();
+    task.progress = 100;
+  }
+  
+  // Auto-add contact if new
+  if (task.contact && task.contact.length > 5) {
+    const phone = task.contact.match(/[\d\+\-\s\(\)]{7,}/)?.[0]?.replace(/\D/g,'');
+    const existing = state.contacts.find(c => c.phone && phone && c.phone.includes(phone));
+    if (!existing && phone) {
+      const name = task.contact.replace(/[\d\+\-\s\(\)]+/g, '').trim() || task.title.split(' ')[0];
+      state.contacts.push({id: uid(), name, phone, note: `Из задачи: ${task.title}`});
+    }
+  }
+  
+  saveState();
+  document.getElementById('editModal').classList.remove('open');
+  render();
+}
+
+function deleteTask() {
+  if (!confirm('Удалить задачу?')) return;
+  state.tasks = state.tasks.filter(t => t.id !== editingId);
+  if (state.pinnedId === editingId) state.pinnedId = null;
+  saveState();
+  document.getElementById('editModal').classList.remove('open');
+  render();
+}
+
+function pinTask() {
+  state.pinnedId = editingId;
+  saveState();
+  document.getElementById('editModal').classList.remove('open');
+  render();
+}
+
+function completeTask() {
+  setStatus(editingId, 'done');
+  document.getElementById('editModal').classList.remove('open');
+}
+
+// === CONTACTS ===
+function addContact() {
+  const name = document.getElementById('cName').value.trim();
+  const phone = document.getElementById('cPhone').value.trim();
+  const note = document.getElementById('cNote').value.trim();
+  
+  if (!name) return;
+  
+  state.contacts.push({id: uid(), name, phone, note});
+  
+  document.getElementById('cName').value = '';
+  document.getElementById('cPhone').value = '';
+  document.getElementById('cNote').value = '';
+  
+  saveState();
+  render();
+}
+
+function deleteContact(id) {
+  if (!confirm('Удалить контакт?')) return;
+  state.contacts = state.contacts.filter(c => c.id !== id);
+  saveState();
+  render();
+}
+
+// === JOURNAL (Auto-save) ===
+function loadJournal() {
+  const j = state.journal[today()] || {};
+  document.getElementById('jDone').value = j.done || '';
+  document.getElementById('jStuck').value = j.stuck || '';
+  document.getElementById('jNext').value = j.next || '';
+}
+
+function saveJournal() {
+  if (!state.journal[today()]) state.journal[today()] = {};
+  state.journal[today()].done = document.getElementById('jDone').value;
+  state.journal[today()].stuck = document.getElementById('jStuck').value;
+  state.journal[today()].next = document.getElementById('jNext').value;
+  saveState();
+}
+
+function showSaveStatus(field) {
+  const el = document.getElementById(field + 'Status');
+  if (el) {
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+  }
+}
+
+// Auto-save journal on every change
+['jDone', 'jStuck', 'jNext'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    saveJournal();
+    showSaveStatus(id);
+  });
+});
+
+// === REPORT ===
+function generateReport() {
+  const d = today();
+  const active = sortTasks(state.tasks.filter(t => t.status !== 'done'));
+  const doneToday = state.tasks.filter(t => t.status === 'done' && t.doneAt && t.doneAt.slice(0,10) === d);
+  const overdue = state.tasks.filter(t => isOverdue(t));
+  const j = state.journal[d] || {};
+  const {task} = getFocus();
+  
+  let r = `OH MY GEEK • Отчёт дня • ${d}\n${'='.repeat(50)}\n\n`;
+  
+  r += `🎯 ФОКУС:\n`;
+  if (task) {
+    r += `• ${task.title} [${task.store || '—'}]\n`;
+    r += `  Ответ: ${task.owner || '—'} | Срок: ${task.due || '—'} | Прогресс: ${task.progress || 0}%\n`;
+    if (task.contact) r += `  📞 ${task.contact}\n`;
+    r += `  Шаг: ${task.next || '—'}\n`;
+  } else r += `• Нет активных\n`;
+  
+  r += `\n📋 АКТИВНЫЕ (${active.length}):\n`;
+  if (!active.length) r += `• Нет\n`;
+  active.slice(0,10).forEach((t,i) => {
+    r += `${i+1}. ${t.title} [${t.store || '—'}] | ${t.progress||0}% | ${t.due || 'без срока'}\n`;
+  });
+  
+  r += `\n✅ ЗАКРЫТО СЕГОДНЯ (${doneToday.length}):\n`;
+  if (!doneToday.length) r += `• Нет\n`;
+  doneToday.forEach((t,i) => r += `${i+1}. ${t.title}\n`);
+  
+  r += `\n⚠️ ПРОСРОЧКИ (${overdue.length}):\n`;
+  if (!overdue.length) r += `• Нет\n`;
+  overdue.forEach((t,i) => r += `${i+1}. ${t.title} (срок: ${t.due})\n`);
+  
+  r += `\n📝 ДНЕВНИК:\n`;
+  r += `Сделал: ${j.done || '—'}\n`;
+  r += `Застрял: ${j.stuck || '—'}\n`;
+  r += `Завтра: ${j.next || '—'}\n`;
+  
+  r += `\n${'='.repeat(50)}\n${new Date().toLocaleString('ru')}\n`;
+  return r;
+}
+
+function showReport() {
+  document.getElementById('reportText').value = generateReport();
+  document.getElementById('reportModal').classList.add('open');
+}
+
+async function copyReport() {
+  try { await navigator.clipboard.writeText(document.getElementById('reportText').value); alert('Скопировано!'); } catch {}
+}
+
+// === EXPORT/IMPORT ===
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `OMG_FocusTracker_${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importData(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data && Array.isArray(data.tasks)) {
+        if (!data.contacts) data.contacts = [];
+        data.tasks = data.tasks.map(t => ({...t, progress: t.progress || 0, contact: t.contact || ''}));
+        state = data;
+        saveState();
+        render();
+        loadJournal();
+        alert('Импортировано!');
+      }
+    } catch { alert('Ошибка импорта'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function resetData() {
+  if (!confirm('Сбросить ВСЕ данные?')) return;
+  localStorage.removeItem(KEY);
+  state = loadState();
+  render();
+  loadJournal();
+}
+
+// === TABS ===
+function switchTab(name) {
+  // Save journal before switching
+  saveJournal();
+  
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+}
+
+// === UTILS ===
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[c]));
+}
+
+// === EVENT LISTENERS ===
+document.getElementById('addBtn').addEventListener('click', addTask);
+document.getElementById('qTitle').addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
+
+document.getElementById('addContactBtn').addEventListener('click', addContact);
+document.getElementById('cName').addEventListener('keypress', e => { if (e.key === 'Enter') addContact(); });
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => switchTab(t.dataset.tab));
+});
+
+document.getElementById('reportBtn').addEventListener('click', showReport);
+document.getElementById('closeReport').addEventListener('click', () => document.getElementById('reportModal').classList.remove('open'));
+document.getElementById('copyReport').addEventListener('click', copyReport);
+
+document.getElementById('closeEdit').addEventListener('click', () => document.getElementById('editModal').classList.remove('open'));
+document.getElementById('saveEdit').addEventListener('click', saveEdit);
+document.getElementById('deleteTask').addEventListener('click', deleteTask);
+document.getElementById('pinTask').addEventListener('click', pinTask);
+document.getElementById('completeTask').addEventListener('click', completeTask);
+
+document.getElementById('eProgress').addEventListener('input', e => {
+  document.getElementById('eProgressLabel').textContent = e.target.value + '%';
+});
+
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('importFile').addEventListener('change', importData);
+document.getElementById('resetBtn').addEventListener('click', resetData);
+
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+});
+
+// === INIT ===
+render();
+loadJournal();
+</script>
+</body>
+</html>
